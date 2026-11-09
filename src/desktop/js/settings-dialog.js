@@ -1,6 +1,7 @@
 // Settings dialog — same structure as the other EN* apps: section list on the left,
 // rows (label · hint · control) on the right; About and Logs live inside Settings.
 import { state, api } from './store.js';
+import { showUpdateDialog } from './update-dialog.js';
 import { icon, esc, h, modal, toast, toastError, confirmDialog, checkRow, cmdRow, wireCopyButtons, busy } from './ui.js';
 
 const SECTIONS = [
@@ -51,6 +52,7 @@ let current = 'general';
 let pane = null;
 let closeFn = null;
 let smb = null;
+let appVersion = '';
 
 // ---------- building blocks ----------
 const field = (label, hint, control) => `<div class="setting"><div><div>${label}</div>${hint ? `<div class="hint">${hint}</div>` : ''}</div><div class="ctl">${control}</div></div>`;
@@ -75,6 +77,8 @@ function general() {
     ${field('Start sharing when ENiShare opens', 'iPhones can connect as soon as the app is running', toggle('autoStart'))}
     ${field('Notify when a file is received', 'Shown while ENiShare is in the background', toggle('notifyOnReceive'))}
     ${field('Notify when a new device pairs', '', toggle('notifyOnConnect'))}
+    ${field('Check for updates automatically', 'Looks for a new ENiShare release on GitHub once a day. This is the only time ENiShare uses the internet', toggle('checkUpdates'))}
+    ${field('Updates', `<span id="u-status">You have version ${esc(appVersion)}</span>`, `<button class="btn sm" id="s-check-update">Check now</button>`)}
     ${field('PC name shown on the iPhone', 'Empty uses the computer name', `<input class="input" style="width:220px" data-str="pcName" placeholder="${esc(state.server?.pcName || '')}" value="${esc(state.settings.pcName)}">`)}
     ${field('Settings file', 'Move your settings to another computer (the PIN is never exported)', `<button class="btn sm" id="s-import">Import…</button><button class="btn sm" id="s-export">Export…</button>`)}
     ${field('Reset all settings', 'Shared files, received files and history are kept', `<button class="btn sm danger" id="s-reset">Reset</button>`)}`;
@@ -171,7 +175,7 @@ function about(info = {}) {
     </div>
     <div class="row end mt-s"><button class="btn sm ghost" id="a-diag">${icon('copy', 14)} Copy diagnostics</button></div>
     <div class="group-label">Privacy</div>
-    <div class="group"><div class="grow-row"><span class="muted small">ENiShare works only on your local network. Files go directly between your iPhone and this PC; nothing is uploaded to any server or cloud, and the app makes no internet requests.</span></div></div>
+    <div class="group"><div class="grow-row"><span class="muted small">Files go directly between your iPhone and this PC on your local network; nothing is uploaded to any server or cloud. The only internet request is the optional update check (General → Check for updates), which asks GitHub for the latest version number.</span></div></div>
     <div class="group-label">Feature status</div>
     <div class="group">${FEATURES.map(([f, st, c]) => row(esc(f), `<span class="badge ${c}">${esc(st)}</span>`)).join('')}</div>
     <div class="group-label">Developer</div>
@@ -194,7 +198,7 @@ async function render() {
   for (const b of nav.querySelectorAll('button')) b.classList.toggle('active', b.dataset.section === current);
   pane.classList.toggle('fill', current === 'logs');
   let info = {};
-  if (current === 'about') { try { info = await api.appInfo(); } catch { /* */ } }
+  if (current === 'about' || !appVersion) { try { info = await api.appInfo(); appVersion = info.version; } catch { /* */ } }
   pane.innerHTML = { general, sharing, transfers, security, files, appearance, logs, about }[current](info);
   pane.scrollTop = 0;
   wire();
@@ -215,6 +219,18 @@ function wire() {
   const on = (id, fn) => { const el = pane.querySelector(id); if (el) el.onclick = busy(el, fn); };
 
   // General
+  on('#s-check-update', async () => {
+    const status = pane.querySelector('#u-status');
+    status.textContent = 'Checking…';
+    try {
+      const r = await api.update.check();
+      status.textContent = r.message;
+      if (r.info) { closeFn?.(); showUpdateDialog(r.info, appVersion); }
+    } catch (err) {
+      status.textContent = err.message;
+      throw err;
+    }
+  });
   on('#s-export', async () => { const p = await api.exportSettings(); if (p) toast({ kind: 'success', title: 'Settings exported', detail: p }); });
   on('#s-import', async () => { const s = await api.importSettings(); if (s) { state.settings = s; await api.setTheme(s.theme); toast({ kind: 'success', title: 'Settings imported' }); render(); } });
   on('#s-reset', async () => {

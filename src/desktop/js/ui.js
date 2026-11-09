@@ -65,11 +65,13 @@ export function thumbHtml(f, size = 18) {
 }
 
 // ---------- toasts ----------
-export function toast({ kind = 'info', title, detail = '', timeout = 4500 }) {
+export function toast({ kind = 'info', title, detail = '', timeout = 4500, action = null }) {
   const ic = kind === 'error' ? 'circle-exclamation-point' : kind === 'success' ? 'circle-check' : 'info';
-  const el = h(`<div class="toast ${kind}">${icon(ic, 18)}<div class="grow"><div><b>${esc(title)}</b></div>${detail ? `<div class="detail">${esc(detail)}</div>` : ''}</div>
+  const el = h(`<div class="toast ${kind}">${icon(ic, 18)}<div class="grow"><div><b>${esc(title)}</b></div>${detail ? `<div class="detail">${esc(detail)}</div>` : ''}
+    ${action ? `<button class="btn sm primary" style="margin-top:8px">${esc(action.label)}</button>` : ''}</div>
     <button class="btn ghost icon-only sm" aria-label="Close">${icon('x', 14)}</button></div>`);
-  el.querySelector('button').onclick = () => el.remove();
+  el.querySelector('[aria-label="Close"]').onclick = () => el.remove();
+  if (action) el.querySelector('.btn.primary').onclick = () => { el.remove(); action.run(); };
   document.getElementById('toasts').append(el);
   if (timeout) setTimeout(() => el.remove(), timeout);
 }

@@ -3,6 +3,7 @@
 import { state, subscribe, loadSnapshot, initEvents, api } from './store.js';
 import { icon, esc, toast, toastError, h, reportAdded, fmtBytes } from './ui.js';
 import { openSettings, settingsChanged } from './settings-dialog.js';
+import { showUpdateDialog } from './update-dialog.js';
 import { toggleSharing } from './views/common.js';
 import dashboard from './views/dashboard.js';
 import wifi from './views/wifi.js';
@@ -242,6 +243,12 @@ $('settings-btn').onclick = () => openSettings();
 $('theme-btn').onclick = openThemeMenu;
 $('share-toggle').onclick = (e) => toggleSharing(e.currentTarget);
 window.addEventListener('enishare:go', (e) => go(e.detail));
+// Update found by the daily background check: a toast with an Update button (like the other EN* apps).
+api.onEvent(async (name, info) => {
+  if (name !== 'update:available' || info?.manual) return;
+  const { version } = await api.update.state().catch(() => ({ version: '' }));
+  toast({ kind: 'info', title: `ENiShare ${info.version} is available`, timeout: 30000, action: { label: 'Update', run: () => showUpdateDialog(info, version) } });
+});
 window.addEventListener('keydown', (e) => {
   if (!(e.ctrlKey || e.metaKey)) return;
   if (e.key.toLowerCase() === 'b') { e.preventDefault(); void toggleSidebar(); }

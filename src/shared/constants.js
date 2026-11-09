@@ -37,6 +37,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   copySharedFiles: false, // false = share files in place (linked), true = copy into Shared/
   notifyOnReceive: true,
   notifyOnConnect: true,
+  checkUpdates: true, // ask GitHub for a newer release about once a day
   smbShareName: 'ENiShare',
   pcName: '', // '' = use the computer's host name
 });

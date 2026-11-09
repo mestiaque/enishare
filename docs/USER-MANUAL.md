@@ -45,7 +45,7 @@ The iPhone's **Personal Hotspot** can share a network with the PC over the USB c
 
 Open Settings with the gear in the top bar (or Ctrl+,). Like the other EN* apps, it is one dialog with sections:
 
-* **General:** start sharing automatically, notifications, the PC name shown on the iPhone, settings file import/export, reset.
+* **General:** start sharing automatically, automatic update check and **Check now**, notifications, the PC name shown on the iPhone, settings file import/export, reset.
 * **Sharing:** port, listen on all local networks or one interface, storage folder, copy shared files.
 * **Transfers:** maximum upload size, simultaneous transfers per device.
 * **Security:** pairing PIN, session length, QR lifetime, disconnect all devices.

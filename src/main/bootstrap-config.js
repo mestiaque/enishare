@@ -18,9 +18,9 @@ export function defaultStorageRoot() {
 export function readConfig() {
   try {
     const cfg = JSON.parse(fs.readFileSync(file(), 'utf8'));
-    return { storageRoot: cfg.storageRoot || defaultStorageRoot(), windowBounds: cfg.windowBounds ?? null };
+    return { ...cfg, storageRoot: cfg.storageRoot || defaultStorageRoot(), windowBounds: cfg.windowBounds ?? null, lastUpdateCheck: Number(cfg.lastUpdateCheck) || 0 };
   } catch {
-    return { storageRoot: defaultStorageRoot(), windowBounds: null };
+    return { storageRoot: defaultStorageRoot(), windowBounds: null, lastUpdateCheck: 0 };
   }
 }
 

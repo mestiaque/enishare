@@ -41,6 +41,11 @@ What this means:
 
 A future optional HTTPS mode (local CA + downloadable profile) is possible, but it is not part of 1.0.
 
+## Internet access
+
+File sharing never uses the internet. The only internet request is the optional **update check**: about once a day (Settings → General → *Check for updates automatically*, on by default) or when you press **Check now**, ENiShare asks `api.github.com` for the latest release of `mestiaque/enishare`. No device, file or usage data is sent; the request only carries the user agent `ENiShare/<version> (update check)`.
+An update is installed only when you press **Update now**. The download must match the SHA-256 checksum that GitHub publishes for the release file, otherwise nothing is installed.
+
 ## Firewall
 
 * **Windows:** the installer adds one inbound rule for `ENiShare.exe`, for **Private** networks only. It is removed on uninstall. On networks marked *Public*, Windows blocks incoming connections; the "iPhone can't connect?" check reports this.

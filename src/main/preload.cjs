@@ -42,6 +42,12 @@ contextBridge.exposeInMainWorld('enishare', {
     isMaximized: () => invoke('window:isMaximized'),
     onState: (fn) => { const h = (_e, s) => fn(s); ipcRenderer.on('window:state', h); return () => ipcRenderer.off('window:state', h); },
   },
+  update: {
+    check: () => invoke('update:check'),
+    state: () => invoke('update:state'),
+    install: () => invoke('update:install'),
+    restart: () => invoke('update:restart'),
+  },
   readLogs: (lines) => invoke('logs:read', lines),
   diagnostics: () => invoke('app:diagnostics'),
   exportSettings: () => invoke('settings:export'),

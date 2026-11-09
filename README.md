@@ -15,6 +15,7 @@ Share files between a **Windows or Ubuntu PC** and an **iPhone**. Nothing needs 
 | PC → iPhone downloads: streaming, Range requests, "download selected as ZIP", inline image/PDF preview | Implemented; automated tests pass |
 | Live progress (Socket.IO), auto-reconnect, device list with last-seen | Implemented |
 | Desktop UI in the EN* family layout: frameless window, sidebar sections, status bar, Settings dialog (General, Sharing, Transfers, Security, Files app, Appearance, Logs, About), dark/light/glass/system themes, accent colours | Implemented; screenshots checked under Xvfb |
+| In-app updates from GitHub releases: daily check (can be turned off), Check now, SHA-256-verified install for .deb / AppImage / Windows | Implemented; logic tested. Works once a release is published on GitHub |
 | USB via the iPhone's Personal Hotspot over USB | **Experimental** (detection is real; needs testing on a device) |
 | iOS Files app via the OS's own SMB server | **Experimental** (assisted setup; needs testing on a device) |
 | HEIC thumbnails on the PC | **Partial** (Windows with HEIF codecs; Ubuntu with `heif-convert`) |
