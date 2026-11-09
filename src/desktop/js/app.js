@@ -4,6 +4,7 @@ import { state, subscribe, loadSnapshot, initEvents, api } from './store.js';
 import { icon, esc, toast, toastError, h, reportAdded, fmtBytes } from './ui.js';
 import { openSettings, settingsChanged } from './settings-dialog.js';
 import { showUpdateDialog } from './update-dialog.js';
+import { transferTotals } from './stage.js';
 import { toggleSharing } from './views/common.js';
 import dashboard from './views/dashboard.js';
 import wifi from './views/wifi.js';
@@ -190,6 +191,25 @@ function renderStatus() {
     <span class="item fg">${icon('arrow-up', 12)} ${fmtBytes(down)}/s</span>`;
 }
 
+// ---------- iTunes-style progress under the app bar ----------
+// iPhone → PC fills from the right, PC → iPhone from the left.
+function renderXferBar() {
+  const t = transferTotals();
+  const bar = $('xfer-bar');
+  const [out, inn] = bar.querySelectorAll('i');
+  const set = (el, s) => {
+    el.style.width = s.count ? `${Math.max(2, s.percent)}%` : '0';
+    el.classList.toggle('paused', s.count > 0 && s.names.length === 0);
+  };
+  set(out, t.out);
+  set(inn, t.in);
+  bar.classList.toggle('show', t.in.count + t.out.count > 0);
+  const parts = [];
+  if (t.in.count) parts.push(`iPhone → PC ${Math.floor(t.in.percent)}%`);
+  if (t.out.count) parts.push(`PC → iPhone ${Math.floor(t.out.percent)}%`);
+  $('appbar').title = parts.join(' · ');
+}
+
 // ---------- theme, accent, motion ----------
 const media = window.matchMedia('(prefers-color-scheme: dark)');
 function applyTheme() {
@@ -260,6 +280,7 @@ subscribe((what, payload) => {
   if (what === 'settings' || what === 'all') { applyTheme(); applySidebar(); renderThemeButton(); settingsChanged(); }
   if (['server', 'all'].includes(what)) renderShareButton();
   if (['server', 'stats', 'all', 'transfers', 'devices'].includes(what)) { renderStatus(); renderCounts(); }
+  if (what === 'transfers' || what === 'all') renderXferBar();
   if (what === 'all' || what === 'fatal') go(currentId || remembered());
   if (what === 'uploadReceived' && document.hasFocus()) toast({ kind: 'success', title: 'File received', detail: `${payload.name} · ${payload.deviceName}` });
   current?.view.update?.(what, payload);

@@ -1,10 +1,12 @@
 // ENiShare mobile client.
 import { api, setCsrf } from './api.js';
 import { Uploader } from './uploader.js';
+import { createPhoneStage } from './stage.js';
 import { $, esc, icon, hydrateIcons, fmtBytes, fmtEta, kindOf, kindIcon, toast } from './util.js';
 
 const uploader = new Uploader();
-const state = { shared: [], sent: [], query: '', selectMode: false, selected: new Set(), downloads: new Map(), connected: false };
+const state = { shared: [], sent: [], query: '', selectMode: false, selected: new Set(), downloads: new Map(), connected: false, pcName: '' };
+let stage = null;
 
 // ---------------------------------------------------------------- session
 async function init() {
@@ -13,12 +15,14 @@ async function init() {
     const s = await api('/api/session');
     setCsrf(s.csrfToken);
     $('#pc-name').textContent = `Connected to “${s.pcName}”`;
+    state.pcName = s.pcName;
     uploader.concurrency = s.limits.maxConcurrent;
     uploader.maxBytes = s.limits.maxUploadBytes;
   } catch (err) {
     if (err.status === 401) return goPair();
     banner(err.message, 'err');
   }
+  stage = createPhoneStage({ uploader, downloads: state.downloads, pcName: () => state.pcName });
   initTabs();
   initUpload();
   initDownloads();
@@ -75,8 +79,8 @@ function initUpload() {
   }
   $('#cancel-all').onclick = () => uploader.cancelAll();
   $('#clear-done').onclick = () => uploader.clearFinished();
-  uploader.addEventListener('change', renderQueue);
-  uploader.addEventListener('progress', (e) => updateItem(e.detail));
+  uploader.addEventListener('change', () => { renderQueue(); stage?.update(); });
+  uploader.addEventListener('progress', (e) => { updateItem(e.detail); stage?.update(); });
   uploader.addEventListener('done', (e) => { loadSent(); if (!uploader.busy) return; toast(`Sent ${e.detail.name}`, 'ok', 1800); });
   uploader.addEventListener('idle', () => {
     const t = uploader.totals();
@@ -327,8 +331,9 @@ function initSocket() {
     if (t.direction !== 'download' || !t.fileId) return;
     state.downloads.set(t.fileId, t);
     scheduleRender();
+    stage?.update();
     if (t.status === 'completed' || t.status === 'cancelled' || t.status === 'failed') {
-      setTimeout(() => { state.downloads.delete(t.fileId); renderFiles(); }, 4000);
+      setTimeout(() => { state.downloads.delete(t.fileId); renderFiles(); stage?.update(); }, 4000);
     }
   };
   socket.on('transfer:progress', onTransfer);

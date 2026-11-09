@@ -1,8 +1,9 @@
 import { state } from '../store.js';
 import { icon, esc, fmtBytes } from '../ui.js';
 import { activeTransfersHtml, devicesHtml, wireDevices, toggleSharing, WARNINGS } from './common.js';
+import { createStage } from '../stage.js';
 
-let root; let ctx;
+let root; let ctx; let stage = null;
 
 function render() {
   const s = state.server ?? {};
@@ -27,6 +28,7 @@ function render() {
         </div>
       </div>
     </div>
+    <div class="card mt" id="stage-slot"></div>
     <div class="grid cols-4 mt">
       ${stat('server', 'Server', s.running ? '<span class="badge ok"><span class="dot on"></span>Running</span>' : '<span class="badge">Stopped</span>')}
       ${stat('network', 'Network IP', `<span class="mono selectable" style="font-size:16px">${esc(s.address || '—')}</span>`)}
@@ -41,6 +43,9 @@ function render() {
       <div class="card"><h2>${icon('arrow-up-down', 16)} Active transfers</h2><div id="transfers">${activeTransfersHtml()}</div></div>
       <div class="card"><h2>${icon('smartphone', 16)} Devices</h2><div id="devices">${devicesHtml()}</div></div>
     </div>`;
+  // The stage is one persistent element, so its flying-file animations survive re-renders.
+  root.querySelector('#stage-slot').append(stage.el);
+  stage.update();
   root.querySelector('#toggle').onclick = (e) => toggleSharing(e.currentTarget);
   for (const a of root.querySelectorAll('[data-go]')) a.onclick = () => ctx.go(a.dataset.go);
   wireDevices(root);
@@ -52,10 +57,11 @@ function stat(ic, label, value) {
 
 export default {
   subtitle: 'Overview of sharing, devices and transfers',
-  mount(el, c) { root = el; ctx = c; render(); },
+  mount(el, c) { root = el; ctx = c; stage = createStage(); render(); },
   update(what) {
     if (!root) return;
     if (what === 'transfers') {
+      stage.update();
       const t = root.querySelector('#transfers');
       if (t) t.innerHTML = activeTransfersHtml();
       const values = root.querySelectorAll('.stat .value');
@@ -64,5 +70,5 @@ export default {
     }
     if (['server', 'stats', 'devices', 'network', 'all'].includes(what)) render();
   },
-  unmount() { root = null; },
+  unmount() { stage?.destroy(); stage = null; root = null; },
 };

@@ -17,6 +17,7 @@
   <header class="top">
     <div class="brand"><img src="assets/icon.svg" alt=""><div><b>ENiShare</b><small id="pc-name">Connecting…</small></div></div>
     <span id="conn" class="conn"><span class="dot"></span><span>Connecting</span></span>
+    <div class="xfer-bar" id="xfer-bar"><i class="out"></i><i class="in"></i></div>
   </header>
 
   <div id="banner" class="notice hidden"></div>
@@ -27,6 +28,7 @@
   </nav>
 
   <main>
+    <section id="stage" class="stage card hidden" aria-live="polite"></section>
     <!-- ================= SEND ================= -->
     <section id="tab-send">
       <div class="pickers">

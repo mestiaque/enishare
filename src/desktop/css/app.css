@@ -336,3 +336,68 @@ code, .mono { font-family: var(--mono); font-size: 12px; }
   background-color: rgb(32 27 58 / .86) !important; border-color: rgb(255 255 255 / .16) !important; backdrop-filter: blur(30px) saturate(1.5);
 }
 .glass .input, .glass .url-box, .glass .cmd, .glass .logbox { background-color: rgb(255 255 255 / .08) !important; border-color: rgb(255 255 255 / .16) !important; }
+
+/* ---------- Transfer progress under the app bar (iTunes-style) ----------
+   iPhone → PC fills from the right edge, PC → iPhone from the left edge. */
+.appbar { position: relative; }
+.xfer-bar { position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; pointer-events: none; opacity: 0; transition: opacity .3s; z-index: 2; }
+.xfer-bar.show { opacity: 1; }
+.xfer-bar i {
+  position: absolute; top: 0; bottom: 0; width: 0; transition: width .4s linear;
+  background-color: rgb(var(--accent)); box-shadow: 0 0 8px rgb(var(--accent) / .6);
+  background-image: linear-gradient(90deg, transparent, rgb(255 255 255 / .55), transparent);
+  background-size: 90px 100%; background-repeat: no-repeat;
+}
+.xfer-bar i.out { left: 0; border-radius: 0 3px 3px 0; animation: shine-ltr 1.1s linear infinite; }
+.xfer-bar i.in { right: 0; border-radius: 3px 0 0 3px; animation: shine-rtl 1.1s linear infinite; }
+.xfer-bar i.paused { animation: none; opacity: .55; box-shadow: none; }
+@keyframes shine-ltr { from { background-position: -90px 0; } to { background-position: calc(100% + 90px) 0; } }
+@keyframes shine-rtl { from { background-position: calc(100% + 90px) 0; } to { background-position: -90px 0; } }
+
+/* ---------- Transfer stage: PC ⇄ iPhone with flying files ---------- */
+.stage { display: flex; align-items: center; gap: 12px; }
+.stage .end { width: 132px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 3px; text-align: center; min-width: 0; }
+.stage .end b { font-size: 13px; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stage .end small { font-size: 11px; color: rgb(var(--faint)); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stage .dev { width: 64px; height: 64px; border-radius: 16px; display: grid; place-items: center; margin-bottom: 4px;
+  background: rgb(var(--raised)); color: rgb(var(--faint)); transition: background-color .3s, color .3s, box-shadow .3s; }
+.stage .end.on .dev { background: rgb(var(--accent) / .14); color: rgb(var(--accent)); }
+.stage.active .end.on .dev { box-shadow: 0 0 0 4px rgb(var(--accent) / .12), 0 0 24px rgb(var(--accent) / .25); }
+.stage .end.catch .dev { animation: catch .45s ease-out; }
+@keyframes catch { 0% { transform: scale(1); } 35% { transform: scale(1.12); } 100% { transform: scale(1); } }
+.stage .lane { position: relative; flex: 1; height: 96px; min-width: 120px; }
+.stage .track {
+  position: absolute; left: 6px; right: 6px; top: 40px; height: 2px; border-radius: 2px;
+  background-image: repeating-linear-gradient(90deg, rgb(var(--line)) 0 8px, transparent 8px 16px);
+}
+.stage.active .track { background-image: repeating-linear-gradient(90deg, rgb(var(--accent) / .7) 0 8px, transparent 8px 16px); }
+.stage.out .track { animation: march-ltr .5s linear infinite; }
+.stage.in .track { animation: march-rtl .5s linear infinite; }
+.stage.in.out .track { animation: none; }
+@keyframes march-ltr { to { background-position: 16px 0; } }
+@keyframes march-rtl { to { background-position: -16px 0; } }
+.stage .fliers { position: absolute; left: 14px; right: 14px; top: 41px; height: 0; }
+.flier {
+  position: absolute; top: 0; width: 28px; height: 28px; margin: -14px 0 0 -14px; border-radius: 8px; display: grid; place-items: center;
+  background: rgb(var(--panel)); border: 1px solid rgb(var(--line)); box-shadow: 0 6px 16px rgb(0 0 0 / .25);
+}
+.flier.ltr { animation: fly-ltr 1.7s cubic-bezier(.45, .05, .55, .95) forwards; }
+.flier.rtl { animation: fly-rtl 1.7s cubic-bezier(.45, .05, .55, .95) forwards; }
+@keyframes fly-ltr {
+  0% { left: 0%; transform: translateY(0) scale(.5); opacity: 0; }
+  15% { opacity: 1; transform: translateY(-16px) scale(1); }
+  50% { transform: translateY(-26px) scale(1); }
+  85% { opacity: 1; transform: translateY(-16px) scale(1); }
+  100% { left: 100%; transform: translateY(0) scale(.5); opacity: 0; }
+}
+@keyframes fly-rtl {
+  0% { left: 100%; transform: translateY(0) scale(.5); opacity: 0; }
+  15% { opacity: 1; transform: translateY(-16px) scale(1); }
+  50% { transform: translateY(-26px) scale(1); }
+  85% { opacity: 1; transform: translateY(-16px) scale(1); }
+  100% { left: 0%; transform: translateY(0) scale(.5); opacity: 0; }
+}
+.stage .lane-label { position: absolute; left: 0; right: 0; top: 56px; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 12px; color: rgb(var(--fg)); font-variant-numeric: tabular-nums; }
+.stage .lane-label span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.stage .lane-label .idle { color: rgb(var(--faint)); }
+.glass .flier { background: rgb(32 27 58 / .9); border-color: rgb(255 255 255 / .16); }
