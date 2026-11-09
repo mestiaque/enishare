@@ -1,4 +1,4 @@
-/* ENiShare desktop UI. Layout and metrics follow the other EN* apps (ENDownloader, ENViewer, ENPost):
+/* ENiShare desktop UI. Layout and metrics follow the other EN* apps (ENSave, ENViewer, ENPost):
    220px sidebar, 48px app bar, 28px status bar, 32px controls, 13px base text. */
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }

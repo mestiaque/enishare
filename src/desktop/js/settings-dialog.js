@@ -183,7 +183,7 @@ function about(info = {}) {
       ${row('Developed by', '<span class="muted">M. Estiaque Ahmed Khan</span>')}
       ${row('Contact', '<a id="a-mail">info@mestiaque.com</a>', 'Bug reports, ideas and feedback are welcome')}
       ${row('Website', `<a id="a-web" class="row" style="gap:4px">mestiaque.com ${icon('external-link', 12)}</a>`)}
-      ${row('Also by the developer', '<span class="muted">ENViewer · ENPlayer · ENDownloader · ENPost</span>', 'Same look and themes')}
+      ${row('Also by the developer', '<span class="muted">ENViewer · ENPlayer · ENSave · ENPost</span>', 'Same look and themes')}
       ${row('Licence', '<span class="muted">© 2026 M. Estiaque Ahmed Khan · MIT</span>')}
     </div>
     <div class="group-label">Built with</div>
