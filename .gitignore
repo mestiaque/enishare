@@ -1,0 +1,8 @@
+node_modules/
+release/
+dist/
+.cache/
+*.log
+src/desktop/vendor/
+src/mobile/vendor/
+.DS_Store

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: enishare:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ENiShare</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="assets/icon.svg" alt="">
+        <div><b>ENiShare</b><small>PC ⇄ iPhone</small></div>
+      </div>
+      <nav id="nav"></nav>
+      <div class="sidebar-foot">
+        <div class="server-pill" id="server-pill"><span class="dot"></span><span>Starting…</span></div>
+      </div>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 id="view-title">Dashboard</h1>
+          <div class="sub" id="view-sub"></div>
+        </div>
+        <div class="spacer"></div>
+        <div id="topbar-actions" class="row"></div>
+      </header>
+      <section class="content" id="content"></section>
+    </main>
+  </div>
+  <div class="toasts" id="toasts"></div>
+  <div id="modal-root"></div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

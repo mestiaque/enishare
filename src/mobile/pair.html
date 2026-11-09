@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f4f4f6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#131315" media="(prefers-color-scheme: dark)">
+  <meta name="format-detection" content="telephone=no">
+  <title>ENiShare · Connect</title>
+  <link rel="icon" href="assets/icon.svg">
+  <link rel="apple-touch-icon" href="assets/icon-180.png">
+  <link rel="stylesheet" href="css/mobile.css">
+</head>
+<body class="pair-page">
+  <main class="pair">
+    <img src="assets/icon.svg" alt="" class="pair-logo">
+    <h1>ENiShare</h1>
+    <p class="muted" id="pc">Connect to your PC</p>
+    <div id="reason" class="notice warn hidden"></div>
+
+    <section id="pin-box" class="card hidden">
+      <h2>Enter the PIN</h2>
+      <p class="muted small">Find the 6-digit pairing PIN in ENiShare on your PC (Settings → Security).</p>
+      <form id="pin-form" autocomplete="off">
+        <input id="pin" class="pin-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="••••••" aria-label="PIN">
+        <button class="btn primary block" type="submit">Connect</button>
+      </form>
+      <div id="pin-error" class="notice err hidden"></div>
+    </section>
+
+    <section class="card">
+      <h2>Scan the QR code</h2>
+      <ol class="steps">
+        <li>On your PC, open <b>ENiShare</b> and click <b>Start Sharing</b>.</li>
+        <li>Open the iPhone <b>Camera</b> and point it at the QR code on the PC screen.</li>
+        <li>Tap the link that appears. You are connected — no app needed.</li>
+      </ol>
+      <p class="muted small">Each QR code works once. If it expired, press <b>Refresh QR</b> on the PC.</p>
+    </section>
+  </main>
+  <script type="module" src="js/pair.js"></script>
+</body>
+</html>

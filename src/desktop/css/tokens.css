@@ -1,0 +1,63 @@
+/* EN* family theme tokens — same values as ENViewer (imview/src/styles.css). */
+:root {
+  --accent: 59 130 246;
+  --accent-fg: 255 255 255;
+  --danger: 239 68 68;
+  --success: 34 197 94;
+  --warning: 245 158 11;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --font: "Inter", "Segoe UI Variable", "Segoe UI", "Ubuntu", "Cantarell", system-ui, sans-serif;
+  --mono: "JetBrains Mono", "Cascadia Mono", "Ubuntu Mono", monospace;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.18), 0 6px 20px rgb(0 0 0 / 0.10);
+  --ease: cubic-bezier(.2, .7, .2, 1);
+}
+
+.dark {
+  --bg: 19 19 21;
+  --panel: 25 25 28;
+  --raised: 34 34 38;
+  --line: 44 44 50;
+  --fg: 233 233 237;
+  --muted: 158 158 168;
+  --faint: 104 104 114;
+  color-scheme: dark;
+}
+
+.light {
+  --bg: 244 244 246;
+  --panel: 252 252 253;
+  --raised: 236 236 240;
+  --line: 220 220 226;
+  --fg: 24 24 27;
+  --muted: 88 88 100;
+  --faint: 148 148 158;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 6px 20px rgb(0 0 0 / 0.06);
+  color-scheme: light;
+}
+
+.glass {
+  --bg: 20 17 36;
+  --panel: 34 29 60;
+  --raised: 52 46 86;
+  --line: 74 68 112;
+  --fg: 242 241 248;
+  --muted: 196 192 216;
+  --faint: 146 140 172;
+  color-scheme: dark;
+}
+.glass body {
+  background-color: #12101f;
+  background-image: radial-gradient(circle at 10% 15%, rgb(139 108 255 / 0.55), transparent 42%),
+    radial-gradient(circle at 90% 10%, rgb(226 64 122 / 0.42), transparent 40%),
+    radial-gradient(circle at 72% 92%, rgb(56 189 248 / 0.38), transparent 45%),
+    radial-gradient(circle at 25% 85%, rgb(52 211 153 / 0.22), transparent 40%);
+  background-attachment: fixed;
+}
+.glass .sidebar,
+.glass .card,
+.glass .topbar {
+  background-color: rgb(255 255 255 / 0.06) !important;
+  backdrop-filter: blur(24px) saturate(1.4);
+  border-color: rgb(255 255 255 / 0.10) !important;
+}

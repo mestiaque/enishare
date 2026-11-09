@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f4f4f6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#131315" media="(prefers-color-scheme: dark)">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="apple-mobile-web-app-title" content="ENiShare">
+  <title>ENiShare</title>
+  <link rel="icon" href="assets/icon.svg">
+  <link rel="apple-touch-icon" href="assets/icon-180.png">
+  <link rel="stylesheet" href="css/mobile.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand"><img src="assets/icon.svg" alt=""><div><b>ENiShare</b><small id="pc-name">Connecting…</small></div></div>
+    <span id="conn" class="conn"><span class="dot"></span><span>Connecting</span></span>
+  </header>
+
+  <div id="banner" class="notice hidden"></div>
+
+  <nav class="seg" role="tablist">
+    <button role="tab" data-tab="send" class="active"><span data-icon="upload" data-size="17"></span> Send to PC</button>
+    <button role="tab" data-tab="get"><span data-icon="download" data-size="17"></span> Get from PC <span class="count" id="shared-count"></span></button>
+  </nav>
+
+  <main>
+    <!-- ================= SEND ================= -->
+    <section id="tab-send">
+      <div class="pickers">
+        <label class="picker">
+          <input type="file" id="pick-photos" accept="image/*,video/*" multiple>
+          <span class="picker-icon photos" data-icon="images" data-size="26"></span>
+          <b>Select Photos</b><small>Photos &amp; videos</small>
+        </label>
+        <label class="picker">
+          <input type="file" id="pick-docs" multiple
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.rtf,.odt,.ods,.odp,.pages,.numbers,.key,.zip,.md,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain,text/csv,application/zip">
+          <span class="picker-icon docs" data-icon="files" data-size="26"></span>
+          <b>Select Documents</b><small>From the Files app</small>
+        </label>
+      </div>
+      <label class="any-file"><input type="file" id="pick-any" multiple>Other file types…</label>
+
+      <div id="overall" class="card overall hidden">
+        <div class="row"><b id="overall-title" class="grow">Uploading</b><span id="overall-pct" class="muted">0%</span></div>
+        <div class="progress"><i id="overall-bar"></i></div>
+        <div class="row small muted"><span id="overall-speed" class="grow"></span><span id="overall-left"></span></div>
+        <div class="row gap mt-s">
+          <button class="btn sm" id="cancel-all"><span data-icon="x" data-size="14"></span> Cancel all</button>
+          <button class="btn sm ghost" id="clear-done">Clear finished</button>
+        </div>
+      </div>
+
+      <ul id="queue" class="list"></ul>
+
+      <p class="tip"><span data-icon="info" data-size="14"></span><span>Keep this page open while uploading. If the screen locks or Wi-Fi drops, uploads pause and continue automatically.</span></p>
+
+      <h3 class="section">Sent from this iPhone</h3>
+      <ul id="sent" class="list"></ul>
+    </section>
+
+    <!-- ================= GET ================= -->
+    <section id="tab-get" class="hidden">
+      <div class="search-row">
+        <input id="search" class="input" type="search" placeholder="Search files" autocomplete="off">
+        <button class="btn" id="select-mode">Select</button>
+      </div>
+      <div id="select-bar" class="card select-bar hidden">
+        <div class="row"><b class="grow" id="sel-count">0 selected</b><button class="btn sm ghost" id="sel-all">All</button></div>
+        <div class="row gap mt-s">
+          <button class="btn primary sm grow" id="dl-zip"><span data-icon="file-archive" data-size="15"></span> Download as ZIP</button>
+          <button class="btn sm grow" id="dl-each"><span data-icon="download" data-size="15"></span> One by one</button>
+        </div>
+        <p class="small muted">Safari may ask permission or skip files when several downloads start at once. "Download as ZIP" always works; open the ZIP in the Files app to unpack it.</p>
+      </div>
+      <ul id="files" class="list"></ul>
+      <p class="tip"><span data-icon="info" data-size="14"></span><span>Downloads are saved to <b>Files → Downloads</b>. Tap the download arrow in Safari's address bar to see them.</span></p>
+    </section>
+  </main>
+
+  <div id="viewer" class="viewer hidden" role="dialog" aria-modal="true">
+    <div class="viewer-bar"><span id="viewer-name" class="grow ellipsis"></span>
+      <a id="viewer-dl" class="btn sm" href="#"><span data-icon="download" data-size="15"></span></a>
+      <button class="btn sm" id="viewer-close"><span data-icon="x" data-size="15"></span></button></div>
+    <div class="viewer-body"><img id="viewer-img" alt=""></div>
+  </div>
+
+  <div id="toasts" class="toasts"></div>
+  <script src="/socket.io/socket.io.min.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

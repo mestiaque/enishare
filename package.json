@@ -1,0 +1,46 @@
+{
+  "name": "enishare",
+  "productName": "ENiShare",
+  "version": "1.0.0",
+  "description": "Share files between your PC and iPhone over Wi-Fi or USB — no iPhone app, no cloud.",
+  "author": {
+    "name": "M. Estiaque Ahmed Khan",
+    "email": "info@mestiaque.com",
+    "url": "https://mestiaque.com"
+  },
+  "license": "MIT",
+  "homepage": "https://mestiaque.com",
+  "private": true,
+  "type": "module",
+  "main": "src/main/main.js",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "postinstall": "node scripts/vendor.js",
+    "vendor": "node scripts/vendor.js",
+    "start": "node scripts/start.js",
+    "dev": "node scripts/start.js --dev",
+    "test": "node scripts/test.js",
+    "check": "node scripts/check.js",
+    "build:linux": "node scripts/build-linux.js",
+    "build:win": "node scripts/build-windows.js"
+  },
+  "dependencies": {
+    "archiver": "^8.0.0",
+    "busboy": "^1.6.0",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.3",
+    "file-type": "^22.3.0",
+    "lucide": "^1.70.0",
+    "mime-types": "^3.0.2",
+    "qrcode": "^1.5.4",
+    "socket.io": "^4.8.4"
+  },
+  "devDependencies": {
+    "electron": "^45.2.3",
+    "electron-builder": "^26.18.0",
+    "supertest": "^7.3.2"
+  },
+  "desktopName": "enishare.desktop"
+}

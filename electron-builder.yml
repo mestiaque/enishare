@@ -1,0 +1,57 @@
+appId: com.mestiaque.enishare
+productName: ENiShare
+copyright: Copyright © 2026 M. Estiaque Ahmed Khan
+directories:
+  output: release
+  buildResources: build
+files:
+  - package.json
+  - src/**/*
+  - "!src/**/*.map"
+  - node_modules/**/*
+  - "!node_modules/**/{test,tests,__tests__,docs,example,examples}/**"
+  - "!node_modules/**/*.{md,map,ts,d.ts,mts,cts}"
+asar: true
+# The server process and the mobile web client are read from disk by Node and Express.
+asarUnpack:
+  - src/server/**
+  - src/shared/**
+  - src/mobile/**
+extraMetadata:
+  main: src/main/main.js
+
+linux:
+  target: [AppImage, deb]
+  category: Network;FileTransfer
+  icon: build/icons
+  executableName: enishare
+  syncDesktopName: true
+  synopsis: Share files between your PC and iPhone over Wi-Fi or USB
+  description: >-
+    ENiShare shares files between a PC and an iPhone over the local network.
+    The iPhone uses Safari: scan a QR code, then upload photos and documents or
+    download files from the PC. No iPhone app, no cloud.
+  maintainer: M. Estiaque Ahmed Khan <info@mestiaque.com>
+  vendor: M. Estiaque Ahmed Khan
+deb:
+  priority: optional
+appImage:
+  artifactName: ENiShare-${version}-${arch}.AppImage
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: build/icon.ico
+  executableName: ENiShare
+nsis:
+  oneClick: false
+  perMachine: true
+  allowElevation: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: ENiShare
+  include: build/installer.nsh
+  artifactName: ENiShare-Setup-${version}.exe
+  uninstallDisplayName: ENiShare
