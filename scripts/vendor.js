@@ -20,6 +20,7 @@ const ICONS = [
   'arrow-up-down', 'link', 'circle-check', 'circle-x', 'hourglass', 'network', 'lock', 'unplug',
   'plug-zap', 'circle-question-mark', 'mail', 'globe', 'pause', 'rotate-ccw', 'log-out', 'bell',
   'chevron-right', 'list-checks', 'arrow-down', 'arrow-up', 'presentation', 'wifi-off',
+  'panel-left', 'minus', 'sparkles',
 ];
 
 async function buildIcons() {

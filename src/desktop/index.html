@@ -10,28 +10,30 @@
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-  <div class="app">
+  <div class="app" id="app">
     <aside class="sidebar">
-      <div class="brand">
-        <img src="assets/icon.svg" alt="">
-        <div><b>ENiShare</b><small>PC ⇄ iPhone</small></div>
-      </div>
-      <nav id="nav"></nav>
-      <div class="sidebar-foot">
-        <div class="server-pill" id="server-pill"><span class="dot"></span><span>Starting…</span></div>
-      </div>
+      <div class="brand"><img src="assets/icon.svg" alt=""><b>ENiShare</b></div>
+      <nav class="nav" id="nav"></nav>
     </aside>
-    <main class="main">
-      <header class="topbar">
-        <div>
-          <h1 id="view-title">Dashboard</h1>
-          <div class="sub" id="view-sub"></div>
-        </div>
+    <div class="main">
+      <header class="appbar" id="appbar">
+        <button class="icon-btn" id="toggle-sidebar" title="Hide sidebar (Ctrl+B)" data-icon="panel-left" data-size="16"></button>
+        <div class="title"><b id="view-title">Dashboard</b><small id="view-sub"></small></div>
         <div class="spacer"></div>
         <div id="topbar-actions" class="row"></div>
+        <button class="btn primary sm" id="share-toggle"></button>
+        <div class="sep"></div>
+        <button class="icon-btn" id="theme-btn" title="Theme"></button>
+        <button class="icon-btn" id="settings-btn" title="Settings (Ctrl+,)" data-icon="settings" data-size="16"></button>
+        <div class="win-ctl">
+          <button id="win-min" title="Minimize" aria-label="Minimize" data-icon="minus" data-size="14"></button>
+          <button id="win-max" title="Maximize" aria-label="Maximize" data-icon="square" data-size="12"></button>
+          <button id="win-close" class="close" title="Close" aria-label="Close" data-icon="x" data-size="14"></button>
+        </div>
       </header>
       <section class="content" id="content"></section>
-    </main>
+      <footer class="statusbar" id="statusbar"></footer>
+    </div>
   </div>
   <div class="toasts" id="toasts"></div>
   <div id="modal-root"></div>

@@ -85,6 +85,7 @@ export function createRepositories(db) {
 
   const settings = {
     all: () => Object.fromEntries(q('SELECT key, value FROM settings').all().map((r) => [r.key, JSON.parse(r.value)])),
+    clear: () => q('DELETE FROM settings').run(),
     set: (key, value) => q('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value')
       .run(key, JSON.stringify(value)),
   };

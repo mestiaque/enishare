@@ -56,9 +56,9 @@ export async function toggleSharing(btn) {
 
 export const WARNINGS = {
   NO_NETWORK: 'No network connection found. Connect this PC to Wi-Fi or Ethernet (or the iPhone\'s USB hotspot).',
-  ONLY_VIRTUAL: 'Only virtual or VPN adapters were found. Connect to Wi-Fi, or pick an interface manually in Settings.',
-  SELECTED_INTERFACE_GONE: 'The network interface chosen in Settings is not available. Using the best available one instead.',
-  MANUAL_IP_NOT_FOUND: 'The manual IP address in Settings does not belong to this PC right now. The iPhone may not be able to connect.',
+  ONLY_VIRTUAL: 'Only virtual or VPN adapters were found. Connect to Wi-Fi, or pick an interface on the Wi-Fi Sharing page.',
+  SELECTED_INTERFACE_GONE: 'The network interface you chose is not available. Using the best available one instead.',
+  MANUAL_IP_NOT_FOUND: 'The manual IP address does not belong to this PC right now. The iPhone may not be able to connect.',
 };
 
 export { kindIcon };

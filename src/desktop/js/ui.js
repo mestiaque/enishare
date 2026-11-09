@@ -77,18 +77,25 @@ export function toast({ kind = 'info', title, detail = '', timeout = 4500 }) {
 export const toastError = (err, title = 'Something went wrong') => toast({ kind: 'error', title, detail: err?.message || String(err), timeout: 7000 });
 
 // ---------- modals ----------
-export function modal({ title, body = '', actions = [], wide = false, onMount }) {
+/**
+ * Dialog in the EN* style: title bar with a close button, scrollable body, optional footer buttons.
+ * `size`: '' | 'wide' | 'narrow' | any extra class (e.g. 'settings-modal').
+ */
+export function modal({ title, body = '', actions = [], wide = false, size = '', onMount }) {
   return new Promise((resolve) => {
     const root = document.getElementById('modal-root');
-    const back = h(`<div class="modal-back"><div class="modal ${wide ? 'wide' : ''}" role="dialog" aria-modal="true">
-      <h3>${esc(title)}</h3><div class="body"></div><div class="row end"></div></div></div>`);
+    const cls = size || (wide ? 'wide' : 'narrow');
+    const back = h(`<div class="modal-back"><div class="modal ${cls}" role="dialog" aria-modal="true">
+      <div class="modal-head"><h3>${esc(title)}</h3><button class="x" aria-label="Close">${icon('x', 16)}</button></div>
+      <div class="body"></div>${actions.length ? '<div class="modal-foot"></div>' : ''}</div></div>`);
     const bodyEl = back.querySelector('.body');
     if (typeof body === 'string') bodyEl.innerHTML = body; else bodyEl.append(body);
-    const close = (v) => { back.remove(); document.removeEventListener('keydown', onKey); resolve(v); };
-    const onKey = (e) => { if (e.key === 'Escape') close(null); };
-    document.addEventListener('keydown', onKey);
+    const close = (v) => { back.remove(); document.removeEventListener('keydown', onKey, true); resolve(v); };
+    const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(null); } };
+    document.addEventListener('keydown', onKey, true);
     back.addEventListener('mousedown', (e) => { if (e.target === back) close(null); });
-    const bar = back.querySelector('.row.end');
+    back.querySelector('.x').onclick = () => close(null);
+    const bar = back.querySelector('.modal-foot');
     for (const a of actions) {
       const b = h(`<button class="btn ${a.kind || ''}">${esc(a.label)}</button>`);
       b.onclick = () => close(typeof a.value === 'function' ? a.value(bodyEl) : a.value);
@@ -96,7 +103,7 @@ export function modal({ title, body = '', actions = [], wide = false, onMount })
     }
     root.append(back);
     onMount?.(bodyEl, close);
-    (back.querySelector('input') || bar.lastElementChild)?.focus();
+    (back.querySelector('.body input') || bar?.lastElementChild)?.focus();
   });
 }
 

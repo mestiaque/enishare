@@ -25,7 +25,10 @@ export const DEFAULT_SETTINGS = Object.freeze({
   bindMode: 'lan', // 'lan' = all interfaces + private-address filter, 'selected' = only the selected IP
   maxUploadMB: 4096,
   maxConcurrent: 3,
-  theme: 'system', // system | dark | light | glass
+  theme: 'dark', // dark | light | glass | system (same default as the other EN* apps)
+  accent: '#3b82f6',
+  animations: true,
+  sidebarCollapsed: false,
   autoStart: false,
   pinEnabled: false,
   pin: '',
@@ -37,6 +40,8 @@ export const DEFAULT_SETTINGS = Object.freeze({
   smbShareName: 'ENiShare',
   pcName: '', // '' = use the computer's host name
 });
+
+export const ACCENTS = ['#3b82f6', '#6366f1', '#8b5cf6', '#ec4899', '#ef4444', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#06b6d4'];
 
 export const SETTING_LIMITS = Object.freeze({
   port: [1024, 65535],

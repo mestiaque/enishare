@@ -9,7 +9,7 @@ function render() {
   const st = state.stats ?? {};
   const warning = state.network?.selection?.warning;
   root.innerHTML = `
-    ${s.error ? `<div class="alert err">${icon('circle-exclamation-point', 18)}<div><b>Sharing could not start</b>${esc(s.error.message)}${s.error.suggestion ? ` Port ${s.error.suggestion} is free — change it in <a data-go="settings">Settings</a>.` : ''}</div></div>` : ''}
+    ${s.error ? `<div class="alert err">${icon('circle-exclamation-point', 18)}<div><b>Sharing could not start</b>${esc(s.error.message)}${s.error.suggestion ? ` Port ${s.error.suggestion} is free — change it in <a data-settings="sharing">Settings → Sharing</a>.` : ''}</div></div>` : ''}
     ${state.crashed ? `<div class="alert warn">${icon('triangle-exclamation-point', 18)}<div><b>The sharing service restarted</b>It stopped unexpectedly and was restarted automatically. Details are in the log.</div></div>` : ''}
     ${warning && WARNINGS[warning] ? `<div class="alert warn">${icon('wifi-off', 18)}<div>${esc(WARNINGS[warning])}</div></div>` : ''}
     <div class="card">

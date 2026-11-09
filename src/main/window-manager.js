@@ -29,6 +29,7 @@ export function createMainWindow({ dev }) {
     minWidth: 980,
     minHeight: 660,
     show: false,
+    frame: false, // own title bar, like the other EN* apps
     title: 'ENiShare',
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#131315' : '#f4f4f6',
     autoHideMenuBar: true,
@@ -69,6 +70,9 @@ export function createMainWindow({ dev }) {
   };
   win.on('resize', save);
   win.on('move', save);
+  const sendState = () => { if (!win.isDestroyed()) win.webContents.send('window:state', { maximized: win.isMaximized() }); };
+  win.on('maximize', sendState);
+  win.on('unmaximize', sendState);
   if (dev) win.webContents.openDevTools({ mode: 'detach' });
   return win;
 }

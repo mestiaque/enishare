@@ -35,6 +35,17 @@ contextBridge.exposeInMainWorld('enishare', {
   setTheme: (theme) => invoke('theme:set', theme),
   appInfo: () => invoke('app:info'),
   restartServer: () => invoke('server:restart'),
+  window: {
+    minimize: () => invoke('window:minimize'),
+    toggleMaximize: () => invoke('window:toggleMaximize'),
+    close: () => invoke('window:close'),
+    isMaximized: () => invoke('window:isMaximized'),
+    onState: (fn) => { const h = (_e, s) => fn(s); ipcRenderer.on('window:state', h); return () => ipcRenderer.off('window:state', h); },
+  },
+  readLogs: (lines) => invoke('logs:read', lines),
+  diagnostics: () => invoke('app:diagnostics'),
+  exportSettings: () => invoke('settings:export'),
+  importSettings: () => invoke('settings:import'),
   /** Absolute path of a dropped file (drag-and-drop). */
   pathForFile: (file) => webUtils.getPathForFile(file),
 });

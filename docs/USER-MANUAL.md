@@ -43,4 +43,15 @@ The iPhone's **Personal Hotspot** can share a network with the PC over the USB c
 
 ## Settings at a glance
 
-Port · start sharing automatically · listen on all local networks or one interface · PC name · storage folder · copy shared files · maximum upload size · simultaneous transfers · pairing PIN · session length · QR lifetime · disconnect all devices · theme (System/Dark/Light/Glass) · notifications · SMB share for the Files app · log folder.
+Open Settings with the gear in the top bar (or Ctrl+,). Like the other EN* apps, it is one dialog with sections:
+
+* **General:** start sharing automatically, notifications, the PC name shown on the iPhone, settings file import/export, reset.
+* **Sharing:** port, listen on all local networks or one interface, storage folder, copy shared files.
+* **Transfers:** maximum upload size, simultaneous transfers per device.
+* **Security:** pairing PIN, session length, QR lifetime, disconnect all devices.
+* **Files app (SMB):** optional share for the iPhone Files app.
+* **Appearance:** theme (Dark/Light/Glass/System), accent colour, animations.
+* **Logs:** recent log lines, open the log folder, copy diagnostics for a bug report.
+* **About:** version, folders, feature status, developer.
+
+Ctrl+B hides or shows the sidebar. The theme button in the top bar switches themes quickly.

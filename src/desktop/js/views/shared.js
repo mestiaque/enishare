@@ -113,7 +113,7 @@ function render() {
       <div class="search">${icon('search', 16)}<input class="input" id="q" placeholder="Search shared files" value="${esc(query)}"></div>
     </div>
     <div class="dropzone" id="drop">${icon('upload', 22)}<div class="mt-s">Drag files or folders here to share them with your iPhone</div>
-      <div class="tiny faint">Files are shared in place (not copied) unless you change this in Settings.</div></div>
+      <div class="tiny faint">Files are shared in place (not copied) unless you change this in <a data-settings="sharing">Settings → Sharing</a>.</div></div>
     <div class="card" style="padding:6px 12px"><div id="list"></div></div>`;
   const addFiles = root.querySelector('#add-files');
   addFiles.onclick = busy(addFiles, async () => { reportAdded(await api.pickFiles()); });

@@ -61,7 +61,7 @@ function render() {
             <div class="small muted" style="margin-bottom:6px">Address for the iPhone</div>
             <div class="url-box"><span class="grow selectable ellipsis">${esc(s.url || 'No network address')}</span>
               <button class="btn sm" id="copy" ${s.url ? '' : 'disabled'}>${icon('copy', 14)} Copy</button></div>
-            <div class="tiny faint mt-s">Typing this address shows the PIN screen${state.settings?.pinEnabled ? '' : ' — enable PIN pairing in Settings to use it'}. The QR code pairs instantly.</div>
+            <div class="tiny faint mt-s">Typing this address shows the PIN screen${state.settings?.pinEnabled ? '' : ' — turn on PIN pairing in <a data-settings="security">Settings → Security</a> to use it'}. The QR code pairs instantly.</div>
           </div>
           <div class="row wrap">
             <button class="btn ${s.running ? 'danger' : 'primary'}" id="toggle">${icon(s.running ? 'square' : 'play', 16)} ${s.running ? 'Stop Sharing' : 'Start Sharing'}</button>
