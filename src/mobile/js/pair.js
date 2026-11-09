@@ -14,7 +14,7 @@ async function init() {
   }
   try {
     const info = await (await fetch('/api/pair/info', { cache: 'no-store' })).json();
-    $('#pc').textContent = `Connect to ${info.pcName}`;
+    $('#pc').textContent = `Connect to the PC “${info.pcName}”`;
     if (info.pinEnabled) $('#pin-box').classList.remove('hidden');
   } catch {
     $('#pc').textContent = 'Cannot reach the PC';

@@ -8,6 +8,19 @@ import { api, csrfHeader, ApiError } from './api.js';
 import { crc32, crc32Hex } from '../vendor/crc32.js';
 
 const RETRY_DELAYS = [1000, 2000, 4000, 8000, 15000, 30000];
+const READ_TIMEOUT_MS = 30_000;
+const STALL_MS = 30_000;
+
+/** Sends a diagnostic line to the PC's log (best effort, never throws). */
+export function reportToPc(level, message, extra) {
+  try {
+    void fetch('/api/client-log', {
+      method: 'POST', credentials: 'same-origin', keepalive: true,
+      headers: { 'Content-Type': 'application/json', ...csrfHeader() },
+      body: JSON.stringify({ level, message: String(message).slice(0, 500), extra }),
+    }).catch(() => {});
+  } catch { /* */ }
+}
 let seq = 0;
 
 export class Uploader extends EventTarget {
@@ -99,39 +112,68 @@ export class Uploader extends EventTarget {
     }
   }
 
-  sendChunk(item, index) {
+  /**
+   * Reads one slice of the file. FileReader is used because Blob.arrayBuffer() on slices of
+   * large Photos-library videos can hang in iOS WebKit; a timeout turns a hang into a retry.
+   */
+  readSlice(item, start, end) {
     return new Promise((resolve, reject) => {
-      const start = index * item.chunkSize;
-      const blob = item.file.slice(start, Math.min(item.size, start + item.chunkSize));
-      blob.arrayBuffer().then((buf) => {
-        if (item.status !== 'uploading') return reject(new ApiError(0, 'CANCELLED', 'Cancelled'));
-        const bytes = new Uint8Array(buf);
-        const crc = crc32Hex(crc32(bytes));
-        const xhr = new XMLHttpRequest();
-        item.xhr = xhr;
-        const base = this.receivedBytes(item);
-        xhr.open('PUT', `/api/uploads/${item.uploadId}/chunks/${index}`);
-        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-        xhr.setRequestHeader('X-Chunk-CRC32', crc);
-        for (const [k, v] of Object.entries(csrfHeader())) xhr.setRequestHeader(k, v);
-        xhr.upload.onprogress = (e) => {
-          item.sent = base + e.loaded;
-          this.sample(item);
-          this.emit('progress', item);
-        };
-        xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) return resolve();
-          let body = null;
-          try { body = JSON.parse(xhr.responseText); } catch { /* */ }
-          if (xhr.status === 401) window.dispatchEvent(new CustomEvent('enishare:unauthorized'));
-          reject(new ApiError(xhr.status, body?.error?.code || 'HTTP', body?.error?.message || `Upload failed (${xhr.status})`));
-        };
-        xhr.onerror = () => reject(new ApiError(0, 'NETWORK', 'Connection lost'));
-        xhr.onabort = () => reject(new ApiError(0, 'CANCELLED', 'Cancelled'));
-        xhr.ontimeout = () => reject(new ApiError(0, 'NETWORK', 'Timed out'));
-        xhr.timeout = 5 * 60 * 1000;
-        xhr.send(bytes);
-      }, () => reject(new ApiError(0, 'READ', 'This file could not be read on the iPhone. It may have been moved or is still downloading from iCloud.')));
+      const reader = new FileReader();
+      const timer = setTimeout(() => {
+        try { reader.abort(); } catch { /* */ }
+        reject(new ApiError(0, 'READ_STALL', `Reading the file on the iPhone stalled at ${start} bytes`));
+      }, READ_TIMEOUT_MS);
+      reader.onload = () => { clearTimeout(timer); resolve(new Uint8Array(reader.result)); };
+      reader.onerror = () => {
+        clearTimeout(timer);
+        reject(new ApiError(0, 'READ', 'This file could not be read on the iPhone. It may have been moved or is still downloading from iCloud.'));
+      };
+      reader.readAsArrayBuffer(item.file.slice(start, end));
+    });
+  }
+
+  async sendChunk(item, index) {
+    const start = index * item.chunkSize;
+    const end = Math.min(item.size, start + item.chunkSize);
+    const bytes = await this.readSlice(item, start, end);
+    if (item.status !== 'uploading') throw new ApiError(0, 'CANCELLED', 'Cancelled');
+    if (bytes.length !== end - start) {
+      throw new ApiError(0, 'READ_SHORT', `The iPhone returned ${bytes.length} of ${end - start} bytes for chunk ${index}`);
+    }
+    const crc = crc32Hex(crc32(bytes));
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      item.xhr = xhr;
+      const base = this.receivedBytes(item);
+      let lastMove = Date.now();
+      let stalled = false;
+      // No upload progress for STALL_MS: the connection is dead even if the OS has not noticed.
+      const watchdog = setInterval(() => {
+        if (Date.now() - lastMove > STALL_MS) { stalled = true; xhr.abort(); }
+      }, 2000);
+      const finish = (fn) => (arg) => { clearInterval(watchdog); fn(arg); };
+      xhr.open('PUT', `/api/uploads/${item.uploadId}/chunks/${index}`);
+      xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+      xhr.setRequestHeader('X-Chunk-CRC32', crc);
+      for (const [k, v] of Object.entries(csrfHeader())) xhr.setRequestHeader(k, v);
+      xhr.upload.onprogress = (e) => {
+        lastMove = Date.now();
+        item.sent = base + e.loaded;
+        this.sample(item);
+        this.emit('progress', item);
+      };
+      xhr.onload = finish(() => {
+        if (xhr.status >= 200 && xhr.status < 300) return resolve();
+        let body = null;
+        try { body = JSON.parse(xhr.responseText); } catch { /* */ }
+        if (xhr.status === 401) window.dispatchEvent(new CustomEvent('enishare:unauthorized'));
+        reject(new ApiError(xhr.status, body?.error?.code || 'HTTP', body?.error?.message || `Upload failed (${xhr.status})`));
+      });
+      xhr.onerror = finish(() => reject(new ApiError(0, 'NETWORK', 'Connection lost')));
+      xhr.onabort = finish(() => reject(stalled ? new ApiError(0, 'NETWORK', `Chunk ${index} stalled`) : new ApiError(0, 'CANCELLED', 'Cancelled')));
+      xhr.ontimeout = finish(() => reject(new ApiError(0, 'NETWORK', 'Timed out')));
+      xhr.timeout = 5 * 60 * 1000;
+      xhr.send(bytes);
     });
   }
 
@@ -150,7 +192,17 @@ export class Uploader extends EventTarget {
   }
 
   handleError(item, err) {
+    if (err.code !== 'BUSY' && err.code !== 'CHUNK_BUSY') {
+      reportToPc('warn', `upload "${item.name}" ${err.code}: ${err.message}`, {
+        size: item.size, received: item.received.size, chunks: item.chunkCount, attempts: item.attempts, status: err.status,
+      });
+    }
+    // After repeated read stalls the file reference is probably unusable: ask the user to pick it again.
+    if (err.code === 'READ_STALL' && item.attempts >= 3) {
+      err = new ApiError(0, 'READ', 'The iPhone stopped giving access to this file. Select it again to continue where it stopped.');
+    }
     const retryable = err.code === 'NETWORK' || err.code === 'CHUNK_CORRUPT' || err.code === 'CHUNK_INCOMPLETE'
+      || err.code === 'READ_STALL' || err.code === 'READ_SHORT'
       || err.code === 'BUSY' || err.code === 'CHUNK_BUSY' || err.code === 'RATE_LIMIT' || err.status >= 500 || err.status === 0;
     if (err.status === 401) { item.status = 'error'; item.error = 'Not connected to the PC. Scan the QR code again.'; this.emit('change'); return; }
     if (err.code === 'UPLOAD_CLOSED') { item.uploadId = null; }

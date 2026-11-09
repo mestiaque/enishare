@@ -201,7 +201,7 @@ export function createServerCore({ storageRoot, logger = nullLogger, thumbnailer
       let ufw = 'unknown';
       try { ufw = /ENABLED\s*=\s*yes/i.test(fs.readFileSync('/etc/ufw/ufw.conf', 'utf8')) ? 'enabled' : 'disabled'; } catch { /* ufw not installed */ }
       out.checks.push({ id: 'firewall', label: 'UFW firewall', ok: ufw !== 'enabled', warn: ufw === 'enabled',
-        detail: ufw === 'enabled' ? `UFW is on. Allow the port with: sudo ufw allow ${settings.get('port')}/tcp` : ufw === 'disabled' ? 'Off (no rule needed)' : 'Not installed' });
+        detail: ufw === 'enabled' ? `UFW is on and may block the iPhone. ENiShare cannot read UFW rules without root; unless port ${settings.get('port')} is already allowed, run: sudo ufw allow ${settings.get('port')}/tcp` : ufw === 'disabled' ? 'Off (no rule needed)' : 'Not installed' });
     } else if (process.platform === 'win32') {
       const r = await powershell('Get-NetConnectionProfile | Select-Object InterfaceAlias, NetworkCategory | ConvertTo-Json -Compress', { timeout: 8000 });
       let profiles = [];

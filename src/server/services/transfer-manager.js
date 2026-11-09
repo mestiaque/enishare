@@ -55,13 +55,14 @@ export function createTransferManager({ repos, settings, events }) {
       return id;
     },
 
-    progress(id, bytes) {
+    /** `force` bypasses the throttle (used at chunk boundaries so the UI never shows stale numbers). */
+    progress(id, bytes, force = false) {
       const t = live.get(id);
       if (!t) return;
       t.bytes = Math.min(bytes, t.total || bytes);
       sample(t);
-      flush(t);
-      if (Date.now() - t.lastEmit >= PROGRESS_THROTTLE_MS) {
+      flush(t, force);
+      if (force || Date.now() - t.lastEmit >= PROGRESS_THROTTLE_MS) {
         t.lastEmit = Date.now();
         events.emit('transfer:progress', view(t));
       }
@@ -70,7 +71,7 @@ export function createTransferManager({ repos, settings, events }) {
     /** Marks a live upload as waiting for more chunks (e.g. the phone lost Wi-Fi). */
     idle(id) {
       const t = live.get(id);
-      if (t) { t.speed = 0; t.samples = [[Date.now(), t.bytes]]; flush(t, true); }
+      if (t) { t.speed = 0; t.samples = [[Date.now(), t.bytes]]; flush(t, true); events.emit('transfer:progress', view(t)); }
     },
 
     complete(id, { fileId = null } = {}) {

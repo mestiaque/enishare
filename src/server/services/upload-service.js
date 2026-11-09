@@ -132,6 +132,7 @@ export function createUploadService({ repos, storage, settings, files, transfers
         chunk_map: Buffer.alloc(Math.ceil(chunkCount / 8)), temp_path: tempPath, created_at: Date.now(),
       });
       lastActivity.set(id, Date.now());
+      logger.info(`upload started "${name}" (${size} bytes, ${chunkCount} chunks) from ${device.device_name}`);
       return { ...sessionView(repos.uploads.get(id)), resumed: false };
     },
 
@@ -199,7 +200,7 @@ export function createUploadService({ repos, storage, settings, files, transfers
       let received = 0;
       for (let i = 0; i < s.chunk_count; i++) received += bitGet(map, i);
       repos.uploads.markChunk(id, map, received);
-      transfers.progress(s.transfer_id, receivedBytes(s, map));
+      transfers.progress(s.transfer_id, receivedBytes(s, map), true);
       return { index, receivedChunks: received, chunkCount: s.chunk_count };
     },
 

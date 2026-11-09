@@ -12,7 +12,7 @@ async function init() {
   try {
     const s = await api('/api/session');
     setCsrf(s.csrfToken);
-    $('#pc-name').textContent = `Connected to ${s.pcName}`;
+    $('#pc-name').textContent = `Connected to “${s.pcName}”`;
     uploader.concurrency = s.limits.maxConcurrent;
     uploader.maxBytes = s.limits.maxUploadBytes;
   } catch (err) {
@@ -87,6 +87,8 @@ function initUpload() {
     if (uploader.busy) { e.preventDefault(); e.returnValue = ''; }
   });
   window.addEventListener('online', () => uploader.resumeWaiting());
+  // iOS suspends background tabs; continue right away when the page is visible again.
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) uploader.resumeWaiting(); });
   setInterval(renderOverall, 1000);
 }
 
