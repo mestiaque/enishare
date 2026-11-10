@@ -1,10 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <!-- ENiShare icon: same construction as the other EN* apps (glass panel, glowing EN).
-       The N's two legs are arrows pointing opposite ways: files travel in both directions. -->
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#2563EB"/>
-      <stop offset="1" stop-color="#7C3AED"/>
+      <stop offset="0" stop-color="#DB2777"/>
+      <stop offset="1" stop-color="#6D28D9"/>
     </linearGradient>
     <clipPath id="clip"><rect x="16" y="16" width="480" height="480" rx="112"/></clipPath>
     <filter id="blobBlur" x="-50%" y="-50%" width="200%" height="200%">
@@ -14,7 +12,7 @@
       <feGaussianBlur stdDeviation="9"/>
     </filter>
     <filter id="glassShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#1E1B4B" flood-opacity="0.4"/>
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#3B0764" flood-opacity="0.35"/>
     </filter>
     <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
       <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="b"/>
@@ -28,59 +26,62 @@
       <stop offset="0" stop-color="#fff" stop-opacity="0.35"/>
       <stop offset="1" stop-color="#fff" stop-opacity="0"/>
     </linearGradient>
-    <linearGradient id="fold" gradientUnits="userSpaceOnUse" x1="286" y1="182" x2="374" y2="330">
-      <stop offset="0" stop-color="#DDD6FE"/>
+    <linearGradient id="fold" gradientUnits="userSpaceOnUse" x1="274" y1="182" x2="362" y2="330">
+      <stop offset="0" stop-color="#FBCFE8"/>
       <stop offset="1" stop-color="#FFFFFF"/>
     </linearGradient>
-    <linearGradient id="down" gradientUnits="userSpaceOnUse" x1="0" y1="182" x2="0" y2="340">
-      <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset="0.55" stop-color="#FFFFFF"/>
-      <stop offset="0.8" stop-color="#E0F2FE"/>
-      <stop offset="1" stop-color="#38BDF8"/>
-    </linearGradient>
-    <linearGradient id="up" gradientUnits="userSpaceOnUse" x1="0" y1="330" x2="0" y2="172">
-      <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset="0.55" stop-color="#FFFFFF"/>
-      <stop offset="0.8" stop-color="#FAE8FF"/>
-      <stop offset="1" stop-color="#E879F9"/>
+    <linearGradient id="play" gradientUnits="userSpaceOnUse" x1="180" y1="220" x2="220" y2="292">
+      <stop offset="0" stop-color="#67E8F9"/>
+      <stop offset="1" stop-color="#FFFFFF"/>
     </linearGradient>
 
-    <!-- E and the N's diagonal, reused for depth layers -->
+    <!-- Letter strokes, reused for depth layers -->
     <g id="strokes" fill="none" stroke-width="32" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M218 182 H138 V330 H218 M138 256 H204"/>
-      <path d="M286 182 L374 330"/>
+      <path d="M230 182 H150 V330 H230"/>
+      <path d="M274 330 V182"/>
+      <path d="M362 330 V226"/>
+      <path d="M274 182 L362 330"/>
     </g>
-    <!-- N's left leg: arrow down (PC → iPhone); right leg: arrow up (iPhone → PC) -->
-    <path id="dn" d="M274 182 A12 12 0 0 1 298 182 V298 H320 L286 340 L252 298 H274 Z"/>
-    <path id="upa" d="M362 330 A12 12 0 0 0 386 330 V214 H408 L374 172 L340 214 H362 Z"/>
+    <!-- Generic smartphone glyph -->
+    <g id="phone" fill="none" stroke-width="8" stroke-linejoin="round">
+      <rect x="186" y="224" width="36" height="64" rx="10"/>
+    </g>
   </defs>
 
+  <!-- Base -->
   <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#bg)"/>
 
+  <!-- Soft colour blobs behind the glass -->
   <g clip-path="url(#clip)" filter="url(#blobBlur)">
-    <circle cx="130" cy="120" r="140" fill="#38BDF8" opacity="0.6"/>
-    <circle cx="410" cy="410" r="160" fill="#E879F9" opacity="0.55"/>
+    <circle cx="130" cy="120" r="140" fill="#FB923C" opacity="0.6"/>
+    <circle cx="410" cy="410" r="160" fill="#38BDF8" opacity="0.6"/>
   </g>
 
+  <!-- Glass panel -->
   <g filter="url(#glassShadow)">
     <rect x="72" y="72" width="368" height="368" rx="84" fill="#FFFFFF" fill-opacity="0.14"
           stroke="url(#glassStroke)" stroke-width="2.5"/>
   </g>
   <path d="M156 72 H356 A84 84 0 0 1 440 156 V200 H72 V156 A84 84 0 0 1 156 72 Z" fill="url(#shine)"/>
 
+  <!-- Subtle 3D: soft shadow + translucent depth -->
   <use href="#strokes" stroke="#1E1B4B" opacity="0.35" transform="translate(0 18)" filter="url(#soft)"/>
-  <use href="#strokes" stroke="#3730A3" opacity="0.5" transform="translate(0 7)"/>
-  <g fill="#3730A3" stroke="#3730A3" stroke-width="8" stroke-linejoin="round" opacity="0.5" transform="translate(0 7)">
-    <use href="#dn"/><use href="#upa"/>
-  </g>
-  <g fill="#1E1B4B" stroke="#1E1B4B" stroke-width="8" stroke-linejoin="round" opacity="0.35" transform="translate(0 18)" filter="url(#soft)">
-    <use href="#dn"/><use href="#upa"/>
-  </g>
+  <use href="#strokes" stroke="#701A75" opacity="0.5" transform="translate(0 7)"/>
 
+  <!-- EN front faces -->
   <g filter="url(#glow)" fill="none" stroke-width="32" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M218 182 H138 V330 H218 M138 256 H204" stroke="#FFFFFF"/>
-    <path d="M286 182 L374 330" stroke="url(#fold)"/>
+    <path d="M230 182 H150 V330 H230" stroke="#FFFFFF"/>
+    <path d="M274 330 V182" stroke="#FFFFFF"/>
+    <path d="M362 330 V226" stroke="#FFFFFF"/>
+    <!-- Folded ribbon diagonal -->
+    <path d="M274 182 L362 330" stroke="url(#fold)"/>
   </g>
-  <use href="#dn" fill="url(#down)" stroke="url(#down)" stroke-width="8" stroke-linejoin="round" filter="url(#glow)"/>
-  <use href="#upa" fill="url(#up)" stroke="url(#up)" stroke-width="8" stroke-linejoin="round" filter="url(#glow)"/>
+  <!-- Phone glyph in the E -->
+  <use href="#phone" stroke="#0369A1" opacity="0.5" transform="translate(0 6)"/>
+  <use href="#phone" stroke="url(#play)" filter="url(#glow)"/>
+  <rect x="197" y="233" width="14" height="5" rx="2.5" fill="#A5F3FC"/>
+
+  <!-- The "i" dot -->
+  <circle cx="362" cy="182" r="19" fill="#701A75" opacity="0.5" transform="translate(0 6)"/>
+  <circle cx="362" cy="182" r="19" fill="url(#play)" filter="url(#glow)"/>
 </svg>
