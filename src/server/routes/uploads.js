@@ -21,8 +21,13 @@ export function uploadRoutes({ uploads, logger }) {
     res.json(uploads.status(req.device, req.params.id));
   });
 
+  // Test hook (tests/e2e only): delay chunk replies to reproduce phones that get them late.
+  const testReplyDelay = Number(process.env.ENISHARE_TEST_DELAY_CHUNK_REPLY_MS) || 0;
+
   r.put('/api/uploads/:id/chunks/:index', requireDevice, requireCsrf, checkId, async (req, res) => {
-    res.json(await uploads.writeChunk(req.device, req.params.id, req.params.index, req));
+    const out = await uploads.writeChunk(req.device, req.params.id, req.params.index, req);
+    if (testReplyDelay) await new Promise((r2) => setTimeout(r2, testReplyDelay));
+    res.json(out);
   });
 
   r.post('/api/uploads/:id/complete', requireDevice, requireCsrf, checkId, async (req, res) => {

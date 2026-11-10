@@ -9,7 +9,10 @@ import { crc32, crc32Hex } from '../vendor/crc32.js';
 
 const RETRY_DELAYS = [1000, 2000, 4000, 8000, 15000, 30000];
 const READ_TIMEOUT_MS = 30_000;
-const STALL_MS = 30_000;
+const STALL_MS = 30_000; // no progress on the phone *and* on the PC for this long = dead connection
+const POLL_MS = 1500; // ask the PC whether a chunk arrived once the phone has sent it
+const PARALLEL_CHUNKS = 2; // chunks of one file in flight at the same time
+const SLOW_CHUNK_MS = 10_000;
 
 /** Sends a diagnostic line to the PC's log (best effort, never throws). */
 export function reportToPc(level, message, extra) {
@@ -29,6 +32,19 @@ export class Uploader extends EventTarget {
     this.items = [];
     this.concurrency = 3;
     this.maxBytes = Infinity;
+    this.slotsUsed = 0;
+    this.slotWaiters = [];
+  }
+
+  /** Chunk requests in flight across all files never exceed the PC's per-device limit. */
+  acquireSlot() {
+    if (this.slotsUsed < this.concurrency) { this.slotsUsed++; return Promise.resolve(); }
+    return new Promise((resolve) => this.slotWaiters.push(resolve));
+  }
+
+  releaseSlot() {
+    const next = this.slotWaiters.shift();
+    if (next) next(); else this.slotsUsed = Math.max(0, this.slotsUsed - 1);
   }
 
   emit(type, detail) { this.dispatchEvent(new CustomEvent(type, { detail })); }
@@ -41,7 +57,7 @@ export class Uploader extends EventTarget {
       if (pending(file)) continue; // the same file picked twice
       const item = {
         id: ++seq, file, name: file.name || 'file', size: file.size, sent: 0, status: 'queued', error: '',
-        uploadId: null, chunkSize: 0, chunkCount: 0, received: new Set(), xhr: null, attempts: 0, speed: 0, samples: [],
+        uploadId: null, chunkSize: 0, chunkCount: 0, received: new Set(), xhrs: new Set(), inflight: new Map(), attempts: 0, speed: 0, samples: [],
       };
       if (file.size > this.maxBytes) { item.status = 'error'; item.error = 'Larger than the limit set on the PC'; }
       this.items.push(item);
@@ -87,13 +103,27 @@ export class Uploader extends EventTarget {
       }
       item.status = 'uploading';
       this.emit('change');
-      for (let i = 0; i < item.chunkCount; i++) {
-        if (item.received.has(i)) continue;
-        if (item.status !== 'uploading') return;
-        await this.sendChunk(item, i);
-        item.received.add(i);
-        item.attempts = 0;
-      }
+      // A few chunks at once keep the Wi-Fi busy while the PC confirms the previous one.
+      const todo = [];
+      for (let i = 0; i < item.chunkCount; i++) if (!item.received.has(i)) todo.push(i);
+      const worker = async () => {
+        while (todo.length && item.status === 'uploading') {
+          const i = todo.shift();
+          await this.acquireSlot();
+          try {
+            if (item.status !== 'uploading') return;
+            await this.sendChunk(item, i);
+          } finally {
+            this.releaseSlot();
+          }
+          item.received.add(i);
+          item.inflight.delete(i);
+          item.attempts = 0;
+          item.sent = this.receivedBytes(item) + this.inflightBytes(item);
+        }
+      };
+      await Promise.all(Array.from({ length: Math.min(PARALLEL_CHUNKS, todo.length) }, worker));
+      if (item.status !== 'uploading') return;
       item.status = 'verifying';
       this.emit('change');
       const done = await api(`/api/uploads/${item.uploadId}/complete`, { method: 'POST' });
@@ -106,7 +136,6 @@ export class Uploader extends EventTarget {
       if (item.status === 'cancelled') return;
       this.handleError(item, err);
     } finally {
-      item.xhr = null;
       this.pump();
       if (!this.busy) this.emit('idle');
     }
@@ -141,40 +170,82 @@ export class Uploader extends EventTarget {
       throw new ApiError(0, 'READ_SHORT', `The iPhone returned ${bytes.length} of ${end - start} bytes for chunk ${index}`);
     }
     const crc = crc32Hex(crc32(bytes));
+    const began = Date.now();
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      item.xhr = xhr;
-      const base = this.receivedBytes(item);
+      item.xhrs.add(xhr);
       let lastMove = Date.now();
-      let stalled = false;
-      // No upload progress for STALL_MS: the connection is dead even if the OS has not noticed.
-      const watchdog = setInterval(() => {
-        if (Date.now() - lastMove > STALL_MS) { stalled = true; xhr.abort(); }
-      }, 2000);
-      const finish = (fn) => (arg) => { clearInterval(watchdog); fn(arg); };
+      let loaded = 0;
+      let pcBytes = -1;
+      let settled = false;
+      let polling = false;
+      const done = (fn, arg) => {
+        if (settled) return;
+        settled = true;
+        clearInterval(watchdog);
+        item.xhrs.delete(xhr);
+        const took = Date.now() - began;
+        if (fn === resolve && took > SLOW_CHUNK_MS) {
+          reportToPc('info', `slow chunk ${index} of "${item.name}": ${(took / 1000).toFixed(1)} s for ${bytes.length} bytes`);
+        }
+        fn(arg);
+      };
+      // Watchdog. Once the phone has handed the chunk to the network, ask the PC: if the chunk is
+      // already stored, carry on at once (iOS sometimes delivers the reply late or not at all);
+      // if bytes are still arriving the network is just slow; only when nothing moves on either
+      // side for STALL_MS is the request dropped and retried.
+      const watchdog = setInterval(async () => {
+        const sentAll = loaded >= bytes.length;
+        if ((sentAll || Date.now() - lastMove > POLL_MS * 4) && !polling) {
+          polling = true;
+          try {
+            const st = await api(`/api/uploads/${item.uploadId}`);
+            if (st.received?.includes(index)) {
+              done(resolve);
+              try { xhr.abort(); } catch { /* reply no longer needed */ }
+              return;
+            }
+            const now = st.writing?.[index] ?? -1;
+            if (now > pcBytes) { pcBytes = now; lastMove = Date.now(); }
+          } catch { /* the poll itself failed: rely on the timer */ }
+          polling = false;
+        }
+        if (Date.now() - lastMove > STALL_MS) {
+          done(reject, new ApiError(0, 'NETWORK', `Chunk ${index} stalled`));
+          try { xhr.abort(); } catch { /* */ }
+        }
+      }, POLL_MS);
       xhr.open('PUT', `/api/uploads/${item.uploadId}/chunks/${index}`);
       xhr.setRequestHeader('Content-Type', 'application/octet-stream');
       xhr.setRequestHeader('X-Chunk-CRC32', crc);
       for (const [k, v] of Object.entries(csrfHeader())) xhr.setRequestHeader(k, v);
       xhr.upload.onprogress = (e) => {
-        lastMove = Date.now();
-        item.sent = base + e.loaded;
+        if (e.loaded > loaded) lastMove = Date.now();
+        loaded = e.loaded;
+        item.inflight.set(index, e.loaded);
+        item.sent = this.receivedBytes(item) + this.inflightBytes(item);
         this.sample(item);
         this.emit('progress', item);
       };
-      xhr.onload = finish(() => {
-        if (xhr.status >= 200 && xhr.status < 300) return resolve();
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) return done(resolve);
         let body = null;
         try { body = JSON.parse(xhr.responseText); } catch { /* */ }
         if (xhr.status === 401) window.dispatchEvent(new CustomEvent('enishare:unauthorized'));
-        reject(new ApiError(xhr.status, body?.error?.code || 'HTTP', body?.error?.message || `Upload failed (${xhr.status})`));
-      });
-      xhr.onerror = finish(() => reject(new ApiError(0, 'NETWORK', 'Connection lost')));
-      xhr.onabort = finish(() => reject(stalled ? new ApiError(0, 'NETWORK', `Chunk ${index} stalled`) : new ApiError(0, 'CANCELLED', 'Cancelled')));
-      xhr.ontimeout = finish(() => reject(new ApiError(0, 'NETWORK', 'Timed out')));
-      xhr.timeout = 5 * 60 * 1000;
+        done(reject, new ApiError(xhr.status, body?.error?.code || 'HTTP', body?.error?.message || `Upload failed (${xhr.status})`));
+      };
+      xhr.onerror = () => done(reject, new ApiError(0, 'NETWORK', 'Connection lost'));
+      xhr.onabort = () => done(reject, new ApiError(0, 'CANCELLED', 'Cancelled'));
+      xhr.ontimeout = () => done(reject, new ApiError(0, 'NETWORK', 'Timed out'));
+      xhr.timeout = 10 * 60 * 1000;
       xhr.send(bytes);
     });
+  }
+
+  inflightBytes(item) {
+    let n = 0;
+    for (const v of item.inflight.values()) n += v;
+    return n;
   }
 
   receivedBytes(item) {
@@ -191,7 +262,14 @@ export class Uploader extends EventTarget {
     item.speed = now > t0 ? ((item.sent - b0) * 1000) / (now - t0) : 0;
   }
 
+  abortChunks(item) {
+    for (const x of [...item.xhrs]) { try { x.abort(); } catch { /* */ } }
+    item.xhrs.clear();
+    item.inflight.clear();
+  }
+
   handleError(item, err) {
+    this.abortChunks(item);
     if (err.code !== 'BUSY' && err.code !== 'CHUNK_BUSY') {
       reportToPc('warn', `upload "${item.name}" ${err.code}: ${err.message}`, {
         size: item.size, received: item.received.size, chunks: item.chunkCount, attempts: item.attempts, status: err.status,
@@ -231,7 +309,7 @@ export class Uploader extends EventTarget {
     const wasUploading = item.uploadId && !['done', 'cancelled', 'error'].includes(item.status);
     item.status = 'cancelled';
     clearTimeout(item.retryTimer);
-    try { item.xhr?.abort(); } catch { /* */ }
+    this.abortChunks(item);
     this.emit('change');
     if (wasUploading) {
       try { await api(`/api/uploads/${item.uploadId}`, { method: 'DELETE' }); } catch { /* server cleans up expired uploads */ }

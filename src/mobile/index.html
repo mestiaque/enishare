@@ -14,9 +14,12 @@
   <link rel="stylesheet" href="css/mobile.css">
 </head>
 <body>
-  <header class="top">
-    <div class="brand"><img src="assets/icon.svg" alt=""><div><b>ENiShare</b><small id="pc-name">Connecting…</small></div></div>
-    <span id="conn" class="conn"><span class="dot"></span><span>Connecting</span></span>
+  <header class="hero">
+    <div class="hero-top">
+      <div class="brand"><img src="assets/icon.svg" alt=""><div><b>ENiShare</b><small id="pc-name">Connecting…</small></div></div>
+      <span id="conn" class="conn"><span class="dot"></span><span>Connecting</span></span>
+    </div>
+    <section id="stage" class="stage" aria-live="polite"></section>
     <div class="xfer-bar" id="xfer-bar"><i class="out"></i><i class="in"></i></div>
   </header>
 
@@ -28,7 +31,6 @@
   </nav>
 
   <main>
-    <section id="stage" class="stage card hidden" aria-live="polite"></section>
     <!-- ================= SEND ================= -->
     <section id="tab-send">
       <div class="pickers">
@@ -44,7 +46,7 @@
           <b>Select Documents</b><small>From the Files app</small>
         </label>
       </div>
-      <label class="any-file"><input type="file" id="pick-any" multiple>Other file types…</label>
+      <label class="any-file"><input type="file" id="pick-any" multiple><span data-icon="file-plus" data-size="18"></span><span class="grow">Other file types</span><span data-icon="chevron-right" data-size="16"></span></label>
 
       <div id="overall" class="card overall hidden">
         <div class="row"><b id="overall-title" class="grow">Uploading</b><span id="overall-pct" class="muted">0%</span></div>
@@ -67,7 +69,7 @@
     <!-- ================= GET ================= -->
     <section id="tab-get" class="hidden">
       <div class="search-row">
-        <input id="search" class="input" type="search" placeholder="Search files" autocomplete="off">
+        <label class="search"><span data-icon="search" data-size="16"></span><input id="search" class="input" type="search" placeholder="Search files" autocomplete="off"></label>
         <button class="btn" id="select-mode">Select</button>
       </div>
       <div id="select-bar" class="card select-bar hidden">

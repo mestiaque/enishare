@@ -1,7 +1,7 @@
 // E2E "phone": an Electron window with an iPhone user agent and screen size that opens the
 // pairing URL, uploads files through the real file inputs (via the DevTools protocol) and
 // takes screenshots. This exercises the mobile UI + server; it is not a substitute for Safari.
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, nativeTheme } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -10,6 +10,7 @@ const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/6
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 app.disableHardwareAcceleration();
+if (process.env.DARK) app.whenReady().then(() => { nativeTheme.themeSource = 'dark'; });
 app.whenReady().then(async () => {
   const win = new BrowserWindow({ width: 390, height: 844, x: 0, y: 0, show: true, useContentSize: true });
   win.webContents.setUserAgent(UA);

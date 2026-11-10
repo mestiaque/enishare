@@ -14,7 +14,8 @@ async function init() {
   try {
     const s = await api('/api/session');
     setCsrf(s.csrfToken);
-    $('#pc-name').textContent = `Connected to “${s.pcName}”`;
+    $('#pc-name').textContent = `Sharing with “${s.pcName}”`;
+    $('#pc-name').title = s.pcName;
     state.pcName = s.pcName;
     uploader.concurrency = s.limits.maxConcurrent;
     uploader.maxBytes = s.limits.maxUploadBytes;
@@ -22,7 +23,8 @@ async function init() {
     if (err.status === 401) return goPair();
     banner(err.message, 'err');
   }
-  stage = createPhoneStage({ uploader, downloads: state.downloads, pcName: () => state.pcName });
+  stage = createPhoneStage({ uploader, downloads: state.downloads, pcName: () => state.pcName, connected: () => state.connected });
+  stage.update();
   initTabs();
   initUpload();
   initDownloads();
@@ -45,6 +47,7 @@ function banner(text, kind = '') {
 
 function setConn(on, label) {
   state.connected = on;
+  stage?.update();
   const c = $('#conn');
   c.className = `conn ${on ? 'on' : 'off'}`;
   c.innerHTML = `<span class="dot"></span><span>${esc(label)}</span>`;
@@ -142,7 +145,7 @@ function renderOverall() {
   box.classList.toggle('hidden', !live);
   if (!live) return;
   const pct = t.total ? Math.floor((t.sent / t.total) * 100) : 100;
-  $('#overall-title').textContent = uploader.busy ? `Uploading ${t.done} of ${t.count}` : `${t.done} of ${t.count} sent`;
+  $('#overall-title').textContent = uploader.busy ? `Uploading ${Math.min(t.done + 1, t.count)} of ${t.count}` : `${t.done} of ${t.count} sent`;
   $('#overall-pct').textContent = `${pct}%`;
   $('#overall-bar').style.width = `${pct}%`;
   $('#overall-bar').parentElement.className = `progress ${!uploader.busy && !t.failed ? 'done' : ''}`;

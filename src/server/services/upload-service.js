@@ -40,6 +40,7 @@ const bitSet = (map, i) => { map[i >> 3] |= 1 << (i & 7); };
 export function createUploadService({ repos, storage, settings, files, transfers, events, logger }) {
   const lastActivity = new Map(); // uploadId -> ms
   const writing = new Map(); // uploadId -> Set(chunk index) currently being written
+  const arriving = new Map(); // uploadId -> Map(chunk index -> bytes received so far)
 
   const maxBytes = () => settings.get('maxUploadMB') * 1024 * 1024;
 
@@ -136,8 +137,13 @@ export function createUploadService({ repos, storage, settings, files, transfers
       return { ...sessionView(repos.uploads.get(id)), resumed: false };
     },
 
+    /**
+     * Status for resuming, and for the phone's chunk watchdog: `writing` tells how many bytes of
+     * each in-flight chunk have arrived, so the phone can tell a slow network from a lost response.
+     */
     status(device, id) {
-      return sessionView(getOwned(device, id));
+      const s = getOwned(device, id);
+      return { ...sessionView(s), writing: Object.fromEntries(arriving.get(id) ?? []) };
     },
 
     async writeChunk(device, id, indexRaw, req) {
@@ -163,11 +169,15 @@ export function createUploadService({ repos, storage, settings, files, transfers
       ensureLive(s, device);
       const base = receivedBytes(s);
       let count = 0;
+      const arrivingFor = arriving.get(id) ?? new Map();
+      arriving.set(id, arrivingFor);
+      arrivingFor.set(index, 0);
       let crc = 0;
       try {
         const meter = new Transform({
           transform(chunk, _enc, cb) {
             count += chunk.length;
+            arrivingFor.set(index, count);
             if (count > expected) return cb(new AppError('CHUNK_TOO_BIG', 'Chunk larger than expected.', 400));
             crc = crc32Update(crc, chunk);
             transfers.progress(s.transfer_id, base + count);
@@ -185,6 +195,8 @@ export function createUploadService({ repos, storage, settings, files, transfers
         throw err instanceof AppError ? err : friendlyFsError(err, 'write the upload');
       } finally {
         busy.delete(index);
+        arrivingFor.delete(index);
+        if (!arrivingFor.size) arriving.delete(id);
         release();
       }
 

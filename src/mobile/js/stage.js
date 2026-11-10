@@ -3,13 +3,13 @@
 // right and file icons flying between them while anything transfers.
 import { icon, esc, fmtBytes, kindOf, kindIcon } from './util.js';
 
-export function createPhoneStage({ uploader, downloads, pcName }) {
+export function createPhoneStage({ uploader, downloads, pcName, connected }) {
   const bar = document.getElementById('xfer-bar');
   const el = document.getElementById('stage');
   el.innerHTML = `
-    <div class="end pc"><div class="dev">${icon('monitor', 22)}</div><small class="ellipsis"></small></div>
+    <div class="end pc"><div class="dev">${icon('monitor', 24)}</div><small class="ellipsis"></small></div>
     <div class="lane"><div class="track"></div><div class="fliers"></div><div class="lane-label"></div></div>
-    <div class="end phone"><div class="dev">${icon('smartphone', 22)}</div><small>This iPhone</small></div>`;
+    <div class="end phone"><div class="dev">${icon('smartphone', 24)}</div><small>This iPhone</small></div>`;
   const fliers = el.querySelector('.fliers');
   const pcEnd = el.querySelector('.end.pc');
   const phoneEnd = el.querySelector('.end.phone');
@@ -68,15 +68,16 @@ export function createPhoneStage({ uploader, downloads, pcName }) {
     barIn.style.width = inn.total ? `${Math.max(2, inn.percent)}%` : '0';
     barIn.classList.toggle('paused', inn.total > 0 && !inn.names.length);
     bar.classList.toggle('show', busy);
-    // stage
-    el.classList.toggle('hidden', !busy);
+    // stage (always shown; idle it tells the connection state)
     el.classList.toggle('active', moving);
+    el.classList.toggle('offline', !connected());
     el.classList.toggle('in', inn.names.length > 0);
     el.classList.toggle('out', out.names.length > 0);
     el.querySelector('.end.pc small').textContent = pcName() || 'PC';
     const parts = [];
     if (inn.total) parts.push(`Sending to PC · ${Math.floor(inn.percent)}%${inn.speed ? ` · ${fmtBytes(inn.speed)}/s` : inn.names.length ? '' : ' · waiting'}`);
     if (out.total) parts.push(`Receiving · ${Math.floor(out.percent)}%${out.speed ? ` · ${fmtBytes(out.speed)}/s` : ''}`);
+    if (!parts.length) parts.push(connected() ? (busy ? 'Waiting…' : 'Ready') : 'Connecting…');
     el.querySelector('.lane-label').innerHTML = parts.map((p) => `<span>${esc(p)}</span>`).join('');
     if (moving && !timer) { tick(); timer = setInterval(tick, 700); }
     if (!moving && timer) { clearInterval(timer); timer = null; }
