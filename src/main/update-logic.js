@@ -25,12 +25,30 @@ export function pickAsset(assets, kind) {
   }) ?? null;
 }
 
+// Lines GitHub adds to generated release notes: a link to the code changes, pull-request credits.
+const NOTES_NOISE = /full changelog|made their first contribution|github\.com\/\S+\/(compare|commits)\/|^\s*#*\s*new contributors\s*$/i;
+
+/** Release notes as plain text for the update dialog, without GitHub's generated links
+ *  ("Full Changelog: https://github.com/.../compare/...") and Markdown marks. */
+export function cleanNotes(body) {
+  const lines = String(body || '').replace(/\r/g, '').split('\n')
+    .filter((l) => !NOTES_NOISE.test(l))
+    .map((l) => l
+      .replace(/\s+by @\S+ in https:\/\/github\.com\/\S+/, '')
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+      .replace(/\*\*|__|`/g, '')
+      .replace(/^\s*#{1,6}\s*/, '')
+      .replace(/^(\s*)[*-]\s+/, '$1\u2022 ')
+      .trimEnd());
+  return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
 export function updateFromRelease(rel, current, kind) {
   const tag = rel?.tag_name;
   if (!tag || rel.draft || rel.prerelease || !isNewer(tag, current)) return null;
   const v = parseVersion(tag).join('.');
   const info = {
-    version: v, notes: String(rel.body || '').trim(), page: rel.html_url || RELEASES_PAGE,
+    version: v, notes: cleanNotes(rel.body), page: rel.html_url || RELEASES_PAGE,
     assetName: '', url: '', size: 0, sha256: '', installable: false, kind,
   };
   const a = pickAsset(rel.assets, kind);

@@ -125,7 +125,7 @@ if (!app.requestSingleInstanceLock()) {
       try {
         const s = await host.call('settings.get');
         notifySettings = s;
-        nativeTheme.themeSource = s.theme === 'light' ? 'light' : s.theme === 'system' ? 'system' : 'dark';
+        nativeTheme.themeSource = (s.theme === 'light' || s.theme === 'glass') ? 'light' : s.theme === 'system' ? 'system' : 'dark';
         setTimeout(maybeCheckDaily, 8000);
         setInterval(maybeCheckDaily, 3 * 3600 * 1000).unref?.();
       } catch { /* UI will show the error */ }

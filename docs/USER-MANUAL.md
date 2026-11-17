@@ -54,4 +54,4 @@ Open Settings with the gear in the top bar (or Ctrl+,). Like the other EN* apps,
 * **Logs:** recent log lines, open the log folder, copy diagnostics for a bug report.
 * **About:** version, folders, feature status, developer.
 
-Ctrl+B hides or shows the sidebar. The theme button in the top bar switches themes quickly.
+Ctrl+B hides or shows the sidebar. The theme is chosen under Settings → Appearance.

@@ -99,7 +99,7 @@ export function registerIpc({ host, logger, logsDir, version }) {
   handle('clipboard:write', (_e, text) => { clipboard.writeText(String(text).slice(0, 2000)); return true; });
 
   handle('theme:set', (_e, theme) => {
-    nativeTheme.themeSource = theme === 'light' ? 'light' : theme === 'system' ? 'system' : 'dark';
+    nativeTheme.themeSource = (theme === 'light' || theme === 'glass') ? 'light' : theme === 'system' ? 'system' : 'dark';
     return nativeTheme.shouldUseDarkColors;
   });
 

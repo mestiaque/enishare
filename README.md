@@ -38,8 +38,8 @@ npm run check      # syntax check of all sources
 ## Building installers
 
 ```bash
-npm run build:linux                  # release/ENiShare-1.0.0-x86_64.AppImage + release/enishare_1.0.0_amd64.deb
-npm run build:win                    # on Windows: release/ENiShare-Setup-1.0.0.exe
+npm run build:linux                  # release/ENiShare-1.1.0-x86_64.AppImage + release/enishare_1.1.0_amd64.deb
+npm run build:win                    # on Windows: release/ENiShare-Setup-1.1.0.exe
 scripts/docker/build-windows.sh      # on Linux: the same Windows installer, built with Wine in Docker
 ```
 

@@ -4,7 +4,7 @@
 
 ### Windows 10/11
 
-1. Run `ENiShare-Setup-1.0.0.exe`. The installer is not code-signed yet, so SmartScreen may show *Windows protected your PC*. Click *More info → Run anyway*.
+1. Run `ENiShare-Setup-1.1.0.exe`. The installer is not code-signed yet, so SmartScreen may show *Windows protected your PC*. Click *More info → Run anyway*.
 2. Choose the install folder. The installer creates a desktop shortcut, a Start-menu entry and a firewall rule for **private** networks.
 3. Start ENiShare from the Start menu. Uninstall it from *Settings → Apps*; the firewall rule is removed too. Your files in `Downloads\ENiShare` are kept.
 4. Optional: for USB, install **Apple Devices** from the Microsoft Store.
@@ -13,12 +13,12 @@
 
 ```bash
 # .deb (adds a menu entry, updates through the package manager)
-sudo apt install ./enishare_1.0.0_amd64.deb
+sudo apt install ./enishare_1.1.0_amd64.deb
 # uninstall: sudo apt remove enishare
 
 # or AppImage (no install)
-chmod +x ENiShare-1.0.0-x86_64.AppImage
-./ENiShare-1.0.0-x86_64.AppImage
+chmod +x ENiShare-1.1.0-x86_64.AppImage
+./ENiShare-1.1.0-x86_64.AppImage
 ```
 
 On Ubuntu 22.04 the AppImage needs FUSE 2: `sudo apt install libfuse2`. On Ubuntu 24.04 use `libfuse2t64`.
@@ -50,8 +50,8 @@ npm run check           # syntax check
 
 | Target | Command | Output |
 |---|---|---|
-| Ubuntu AppImage + .deb | `npm run build:linux` | `release/ENiShare-1.0.0-x86_64.AppImage`, `release/enishare_1.0.0_amd64.deb` |
-| Windows installer (on Windows) | `npm run build:win` | `release/ENiShare-Setup-1.0.0.exe` |
+| Ubuntu AppImage + .deb | `npm run build:linux` | `release/ENiShare-1.1.0-x86_64.AppImage`, `release/enishare_1.1.0_amd64.deb` |
+| Windows installer (on Windows) | `npm run build:win` | `release/ENiShare-Setup-1.1.0.exe` |
 | Windows installer (on Linux) | `scripts/docker/build-windows.sh` | same (uses the `electronuserland/builder:wine` Docker image) |
 
 Code signing is not configured. For a signed Windows build, set electron-builder's `CSC_LINK` and `CSC_KEY_PASSWORD` environment variables.

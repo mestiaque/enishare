@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseVersion, isNewer, pickAsset, updateFromRelease } from '../../src/main/update-logic.js';
+import { parseVersion, isNewer, pickAsset, updateFromRelease, cleanNotes } from '../../src/main/update-logic.js';
 
 const SHA = 'a'.repeat(64);
 const release = (tag, extra = {}) => ({
@@ -43,4 +43,13 @@ test('no checksum, dev build, same version, drafts and pre-releases', () => {
   assert.equal(updateFromRelease(release('v1.0.0'), '1.0.0', 'deb'), null);
   assert.equal(updateFromRelease(release('v2.0.0', { draft: true }), '1.0.0', 'deb'), null);
   assert.equal(updateFromRelease(release('v2.0.0', { prerelease: true }), '1.0.0', 'deb'), null);
+});
+
+test('release notes leave out GitHub links and Markdown', () => {
+  assert.equal(cleanNotes('**Full Changelog**: https://github.com/mestiaque/enishare/compare/v1.0.0...v1.1.0'), '');
+  assert.equal(cleanNotes("## What's Changed\r\n* Faster scans by @me in https://github.com/a/b/pull/3\r\n"
+    + '* **Bold** fix, see [docs](https://x)\r\n\r\n## New Contributors\r\n'
+    + '* @x made their first contribution in https://github.com/a/b/pull/1\r\n\r\n**Full Changelog**: https://github.com/a/b/compare/v1...v2'),
+  "What's Changed\n\u2022 Faster scans\n\u2022 Bold fix, see docs");
+  assert.equal(updateFromRelease(release('v9.0.0', { body: '**Full Changelog**: https://github.com/a/b/compare/v1...v9' }), '1.0.0', 'deb').notes, '');
 });

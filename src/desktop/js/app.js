@@ -128,37 +128,6 @@ function renderShareButton() {
   b.disabled = !state.ready;
 }
 
-const THEMES = [['dark', 'Dark', 'moon'], ['light', 'Light', 'sun'], ['glass', 'Glass', 'sparkles'], ['system', 'System', 'monitor']];
-function renderThemeButton() {
-  const t = THEMES.find(([id]) => id === (state.settings?.theme || 'dark')) || THEMES[0];
-  $('theme-btn').innerHTML = icon(t[2], 16);
-  $('theme-btn').title = `Theme: ${t[1]}`;
-}
-
-function openThemeMenu() {
-  document.querySelector('.menu-pop')?.remove();
-  const btn = $('theme-btn');
-  const r = btn.getBoundingClientRect();
-  const menu = h(`<div class="menu-pop" role="menu" style="top:${r.bottom + 6}px;right:${window.innerWidth - r.right}px">
-    ${THEMES.map(([id, label, ic]) => `<button data-theme="${id}">${icon(ic, 15)} ${label}${state.settings?.theme === id ? `<span class="check">${icon('check', 14)}</span>` : ''}</button>`).join('')}
-  </div>`);
-  const close = () => { menu.remove(); document.removeEventListener('mousedown', outside, true); };
-  const outside = (e) => { if (!menu.contains(e.target) && e.target !== btn && !btn.contains(e.target)) close(); };
-  menu.addEventListener('click', async (e) => {
-    const b = e.target.closest('[data-theme]');
-    if (!b) return;
-    close();
-    try {
-      state.settings = await api.call('settings.update', { patch: { theme: b.dataset.theme } });
-      await api.setTheme(b.dataset.theme);
-      applyTheme();
-      renderThemeButton();
-    } catch (err) { toastError(err); }
-  });
-  document.addEventListener('mousedown', outside, true);
-  document.body.append(menu);
-}
-
 function initWindowControls() {
   const w = api.window;
   $('win-min').onclick = () => w.minimize();
@@ -260,7 +229,6 @@ initDragDrop();
 initWindowControls();
 $('toggle-sidebar').onclick = toggleSidebar;
 $('settings-btn').onclick = () => openSettings();
-$('theme-btn').onclick = openThemeMenu;
 $('share-toggle').onclick = (e) => toggleSharing(e.currentTarget);
 window.addEventListener('enishare:go', (e) => go(e.detail));
 // Update found by the daily background check: a toast with an Update button (like the other EN* apps).
@@ -277,7 +245,7 @@ window.addEventListener('keydown', (e) => {
 for (const el of document.querySelectorAll('[data-icon]')) el.innerHTML = icon(el.dataset.icon, Number(el.dataset.size) || 16);
 
 subscribe((what, payload) => {
-  if (what === 'settings' || what === 'all') { applyTheme(); applySidebar(); renderThemeButton(); settingsChanged(); }
+  if (what === 'settings' || what === 'all') { applyTheme(); applySidebar(); settingsChanged(); }
   if (['server', 'all'].includes(what)) renderShareButton();
   if (['server', 'stats', 'all', 'transfers', 'devices'].includes(what)) { renderStatus(); renderCounts(); }
   if (what === 'transfers' || what === 'all') renderXferBar();
@@ -287,7 +255,6 @@ subscribe((what, payload) => {
 });
 applyTheme();
 renderShareButton();
-renderThemeButton();
 renderStatus();
 go(remembered());
 loadSnapshot().catch(() => { /* waits for server:ready */ });
