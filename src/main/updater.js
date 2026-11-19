@@ -33,8 +33,14 @@ export function installKind() {
 
 const userAgent = () => `ENiShare/${app.getVersion()} (update check)`;
 
+// The latest release, as published to the public mestiaque/en-releases repository: a plain file
+// (no API rate limit, and this repository may be private). The release API is the fallback.
+const MANIFEST = 'https://raw.githubusercontent.com/mestiaque/en-releases/main/enishare.json';
+
 export async function check() {
-  const res = await net.fetch(API_LATEST, { headers: { Accept: 'application/vnd.github+json', 'User-Agent': userAgent() } });
+  const headers = { Accept: 'application/vnd.github+json', 'User-Agent': userAgent() };
+  let res = await net.fetch(MANIFEST, { headers }).catch(() => null);
+  if (!res || !res.ok) res = await net.fetch(API_LATEST, { headers });
   if (res.status === 404) return { info: null, note: 'No ENiShare release has been published yet' };
   if (!res.ok) throw new Error(`GitHub answered ${res.status}`);
   const rel = await res.json();
